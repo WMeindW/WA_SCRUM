@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microsoft Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #0078D4, #00A4EF);
+        }
+
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 350px;
+        }
+
+        .login-container h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .login-btn {
+            background: #0078D4;
+            color: white;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .login-btn:hover {
+            background: #005a9e;
+        }
+
+        .login-btn img {
+            width: 20px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <h2>Sign in with Microsoft</h2>
+    <button class="login-btn" onclick="redirectToMicrosoftLogin()">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft Logo">
+        Continue with Microsoft
+    </button>
+</div>
+
+<script>
+    function redirectToMicrosoftLogin() {
+        const clientId = "YOUR_CLIENT_ID";  // Replace with your Microsoft Client ID
+        const redirectUri = encodeURIComponent("http://localhost:3000/callback");  // Change this to your redirect URI
+        const scope = encodeURIComponent("openid profile email");
+        const microsoftLoginUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=${scope}&response_mode=query`;
+
+        window.location.href = microsoftLoginUrl;
+    }
+</script>
+</body>
+</html>
