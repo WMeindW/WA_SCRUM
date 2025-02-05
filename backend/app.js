@@ -1,22 +1,40 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+require("dotenv").config({ path: "../.env" });
+const session = require("express-session");
+const MySQLStore = require("express-mysql-session")(session);
+
+const { defineAPIEndpoints } = require("./routes/api");
+const { pool } = require("./db_conn");
 
 const app = express();
-app.use(cors());
-app.use(bodyParser.json());
 
-const users = [{ username: "admin", password: "password123" }];
+configureApp(app);
+defineAPIEndpoints(app);
+startServer(app);
 
-app.post("/api/login", (req, res) => {
-    const { username, password } = req.body;
-    const user = users.find((u) => u.username === username && u.password === password);
+function configureApp(app) {
+    const sessionStore = new MySQLStore({}, pool);
 
-    if (user) {
-        res.json({ success: true, token: "fake-jwt-token" });
-    } else {
-        res.json({ success: false });
-    }
-});
+    app.use(session({
+        secret: "secret_key",
+        resave: false,
+        saveUninitialized: false,
+        store: sessionStore,
+        cookie: {
+            httpOnly: true,
+            secure: false,
+        }
+    }));
 
-app.listen(5000, () => console.log("Server running on port 5000"));
+    app.use(cors());
+    app.use(bodyParser.json());
+    console.log("databaze pripojena")
+}
+
+function startServer(app) {
+    app.listen(process.env.S_PORT, () => {
+        console.log(`Server running at http://localhost:${process.env.S_PORT}`);
+    });
+}
