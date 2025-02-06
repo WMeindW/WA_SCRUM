@@ -1,28 +1,27 @@
+const bcrypt = require("bcrypt");
 const { pool } = require("../db_conn");
 
 function defineAPILoginEndpoints(app) {
     app.post("/api/login", async (req, res) => {
-        const { username, password } = req.body;
+        const { email, password } = req.body;
 
-        console.log("Received login attempt:", { username, password });
+        console.log("Received login attempt:", { email, password });
 
-        if (!username || !password) {
-            return res.status(400).send("Username and password are required");
+        if (!email || !password) {
+            return res.status(400).send("Email and password are required");
         }
 
         try {
-            const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [username]);
+            const [rows] = await pool.query("SELECT password_hash FROM users WHERE email = ?", [email]);
 
             console.log("Query result:", rows);
 
             if (rows.length > 0) {
                 const user = rows[0];
 
-                if (user.Heslo === password) {
-                    req.session.userId = user.UzivatelID;
-                    req.session.role = user.RoleID;
+                const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
-                    console.log("Session after login:", req.session);
+                if (isPasswordValid) {
                     return res.status(200).send("Login successful");
                 } else {
                     return res.status(401).send("Invalid username or password");
