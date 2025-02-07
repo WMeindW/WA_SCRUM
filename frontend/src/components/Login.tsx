@@ -6,9 +6,9 @@ const Login = () => {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
-    const handleLogin = async (e) => {
+    const handleLogin = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        setError(""); // Clear previous errors
+        setError("");
 
         if (!username || !password) {
             setError("Both fields are required.");
@@ -23,7 +23,6 @@ const Login = () => {
 
             if (response.data.success) {
                 alert("Login successful!");
-                // Redirect or save token to localStorage
             } else {
                 setError("Invalid credentials");
             }
