@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 
 const Login = () => {
-    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
@@ -10,14 +10,14 @@ const Login = () => {
         e.preventDefault();
         setError("");
 
-        if (!username || !password) {
+        if (!email || !password) {
             setError("Both fields are required.");
             return;
         }
 
         try {
             const response = await axios.post("http://localhost:5000/api/login", {
-                username,
+                email,
                 password,
             });
 
@@ -41,8 +41,8 @@ const Login = () => {
                         type="text"
                         placeholder="Username"
                         className="w-full p-2 mb-3 border rounded"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                     />
                     <input
                         type="password"
