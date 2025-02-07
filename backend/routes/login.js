@@ -3,7 +3,7 @@ const { pool } = require("../db_conn");
 
 function defineAPILoginEndpoints(app) {
     app.post("/api/login", async (req, res) => {
-        const { email, password } = req.query;
+        const { email, password } = req.body;
 
         console.log("Received login attempt:", { email, password });
 
