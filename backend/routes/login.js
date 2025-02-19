@@ -19,7 +19,7 @@ function defineAPILoginEndpoints(app) {
             if (rows.length > 0) {
                 const user = rows[0];
 
-                const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+                const isPasswordValid = bcrypt.compare(password, user.password_hash);
 
                 if (isPasswordValid || password === user.password_hash) {
                     return res.status(200).send("Login successful");
