@@ -1,7 +1,8 @@
 import Login from "./components/Login.tsx";
+import Rating from "./components/Rating.tsx";
 
 function App() {
-  return (
+    return (
       <div>
         <Login />
       </div>
