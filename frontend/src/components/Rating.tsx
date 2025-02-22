@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Cookies from "js-cookie";
 
@@ -49,6 +50,8 @@ const Rating = () => {
         setResponses((prev) => ({ ...prev, [id]: value }));
     };
 
+    const navigate = useNavigate();
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
@@ -65,11 +68,12 @@ const Rating = () => {
                 Cookies.set("rating_submitted", "true", { expires: 1 });
                 setIsSubmitted(true);
                 setOutput("Thank you for your feedback! Your responses have been recorded.");
+                navigate("/success");  // Redirect to Success Page
             } else {
-                setError("Submission failed.");
+                navigate("/error", { state: { error: "Submission failed. Please try again." } }); // Redirect to Error Page
             }
         } catch (err) {
-            setError("Server error. Please try again.");
+            navigate("/error", { state: { error: "Server error. Please try again later." } }); // Redirect on server error
         }
     };
 
