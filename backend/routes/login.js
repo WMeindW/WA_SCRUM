@@ -2,6 +2,9 @@ const bcrypt = require("bcrypt");
 const { pool } = require("../db_conn");
 
 function defineAPILoginEndpoints(app) {
+    const express = require("express");
+    const fetch = require("node-fetch");
+
     app.post("/api/login", async (req, res) => {
         const { email, password } = req.body;
 
@@ -12,20 +15,18 @@ function defineAPILoginEndpoints(app) {
         }
 
         try {
-            const [rows] = await pool.query("SELECT password_hash FROM users WHERE email = ?", [email]);
+            const response = await fetch("https://www.spsejecna.cz/user/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: new URLSearchParams({ user: email, password: password })
+            });
 
-            console.log("Query result:", rows);
+            console.log("SPSE Ječná login response status:", response.status);
 
-            if (rows.length > 0) {
-                const user = rows[0];
-
-                const isPasswordValid = bcrypt.compare(password, user.password_hash);
-
-                if (isPasswordValid || password === user.password_hash) {
-                    return res.status(200).send("Login successful");
-                } else {
-                    return res.status(401).send("Invalid username or password");
-                }
+            if (response.code === 302) {
+                return res.status(200).send("Login successful");
             } else {
                 return res.status(401).send("Invalid username or password");
             }
