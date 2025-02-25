@@ -62,18 +62,31 @@ const Rating = () => {
         }
 
         try {
-            const response = await axios.post("http://localhost:5000/api/submit-rating", { responses });
+            // Check if the user can vote
+            const email = "user@example.com"; // Replace with actual user email from authentication
+            const canVoteResponse = await axios.get(`http://localhost:5000/api/can-vote?email=${email}`);
 
-            if (response.data.success) {
+            if (!canVoteResponse.data.canVote) {
+                setError("You have already submitted a rating within the last 24 hours.");
+                return;
+            }
+
+            // Submit rating (this endpoint should be created in the backend)
+            const submitResponse = await axios.post("http://localhost:5000/api/submit-rating", { email, responses });
+
+            if (submitResponse.data.success) {
+                // Update the last rating date
+                await axios.get(`http://localhost:5000/api/update-vote-date?email=${email}`);
+
                 Cookies.set("rating_submitted", "true", { expires: 1 });
                 setIsSubmitted(true);
                 setOutput("Thank you for your feedback! Your responses have been recorded.");
-                navigate("/success");  // Redirect to Success Page
+                navigate("/success");
             } else {
-                navigate("/error", { state: { error: "Submission failed. Please try again." } }); // Redirect to Error Page
+                navigate("/error", { state: { error: "Submission failed. Please try again." } });
             }
         } catch (err) {
-            navigate("/error", { state: { error: "Server error. Please try again later." } }); // Redirect on server error
+            navigate("/error", { state: { error: "Server error. Please try again later." } });
         }
     };
 
