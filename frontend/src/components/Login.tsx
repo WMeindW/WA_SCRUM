@@ -6,7 +6,7 @@ const Login = () => {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
-    const handleLogin = async (e: { preventDefault: () => void; }) => {
+    const handleLogin = async (e: { preventDefault: () => void }) => {
         e.preventDefault();
         setError("");
 
@@ -22,6 +22,8 @@ const Login = () => {
             });
 
             if (response.data.success) {
+                // Store user email in localStorage
+                localStorage.setItem("userEmail", email);
                 alert("Login successful!");
             } else {
                 setError("Invalid credentials");
@@ -30,6 +32,7 @@ const Login = () => {
             setError("Server error. Please try again.");
         }
     };
+
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">

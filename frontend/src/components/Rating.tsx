@@ -1,60 +1,67 @@
+import * as React from "react";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import Cookies from "js-cookie";
+
+interface Question {
+    id: number;
+    text: string;
+    options: string[];
+}
 
 const Rating = () => {
-    const [questions, setQuestions] = useState<{ id: number; text: string; options: string[] }[]>([]);
+    const { lunch_id } = useParams<{ lunch_id: string }>();
+    const navigate = useNavigate();
+    const [questions, setQuestions] = useState<Question[]>([]);
     const [responses, setResponses] = useState<Record<number, string>>({});
     const [error, setError] = useState("");
-    const [isSubmitted, setIsSubmitted] = useState(false);
-    const [output, setOutput] = useState<string | null>(null);
+    const [submitted, setSubmitted] = useState(false);
+
+    // Retrieve user email safely
+    const userEmail = localStorage.getItem("userEmail");
 
     useEffect(() => {
-        const submitted = Cookies.get("rating_submitted");
-        if (submitted) {
-            setIsSubmitted(true);
+        // Redirect to login if userEmail is missing
+        if (!userEmail) {
+            navigate("/login");
+            return;
         }
 
-        axios.get("https://daniellinda.net/questions.json")
+        // Ensure lunch_id is valid before making requests
+        if (!lunch_id || isNaN(Number(lunch_id))) {
+            setError("Invalid lunch selection.");
+            return;
+        }
+
+        // Fetch rating questions
+        axios.get("http://localhost:5000/api/questions")
             .then((res) => {
-                console.log("Server Response (Type):", typeof res.data);
-                console.log("Raw Server Response:", res.data);
-
-                let parsedData;
-
-                try {
-                    // Check if response is a string, then parse it
-                    parsedData = typeof res.data === "string" ? JSON.parse(res.data.replace(/\r?\n|\r/g, "")) : res.data;
-                } catch (err) {
-                    console.error("Error parsing JSON:", err);
-                    setError("Invalid question format received from the server.");
-                    return;
-                }
-
-                if (Array.isArray(parsedData)) {
-                    setQuestions(parsedData); // Set valid questions
+                if (Array.isArray(res.data)) {
+                    setQuestions(res.data);
                 } else {
-                    console.error("Invalid data format:", parsedData);
-                    setError("Invalid question format received.");
+                    throw new Error("Invalid API response format");
                 }
             })
-            .catch((err) => {
-                console.error("Error loading questions:", err);
-                setError("Failed to load questions.");
-            });
-    }, []);
-
+            .catch(() => setError("Failed to load questions."));
+    }, [lunch_id, userEmail, navigate]);
 
     const handleChange = (id: number, value: string) => {
         setResponses((prev) => ({ ...prev, [id]: value }));
     };
 
-    const navigate = useNavigate();
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
+
+        if (!userEmail) {
+            setError("You must be logged in to submit a rating.");
+            return;
+        }
+
+        if (!lunch_id || isNaN(Number(lunch_id))) {
+            setError("Invalid lunch selection.");
+            return;
+        }
 
         if (Object.keys(responses).length < questions.length) {
             setError("Please answer all questions.");
@@ -62,40 +69,28 @@ const Rating = () => {
         }
 
         try {
-            // Check if the user can vote
-            const email = "user@example.com"; // Replace with actual user email from authentication
-            const canVoteResponse = await axios.get(`http://localhost:5000/api/can-vote?email=${email}`);
-
-            if (!canVoteResponse.data.canVote) {
-                setError("You have already submitted a rating within the last 24 hours.");
-                return;
-            }
-
-            // Submit rating (this endpoint should be created in the backend)
-            const submitResponse = await axios.post("http://localhost:5000/api/submit-rating", { email, responses });
+            const submitResponse = await axios.post("http://localhost:5000/api/submit-rating", {
+                email: userEmail,
+                lunch_id: Number(lunch_id),
+                responses,
+            });
 
             if (submitResponse.data.success) {
-                // Update the last rating date
-                await axios.get(`http://localhost:5000/api/update-vote-date?email=${email}`);
-
-                Cookies.set("rating_submitted", "true", { expires: 1 });
-                setIsSubmitted(true);
-                setOutput("Thank you for your feedback! Your responses have been recorded.");
-                navigate("/success");
+                setSubmitted(true);
+                navigate("/lunches"); // Redirect to lunches after rating
             } else {
-                navigate("/error", { state: { error: "Submission failed. Please try again." } });
+                setError("Submission failed. Please try again.");
             }
         } catch (err) {
-            navigate("/error", { state: { error: "Server error. Please try again later." } });
+            setError("Server error. Please try again later.");
         }
     };
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
             <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-                <h2 className="text-xl font-bold mb-4 text-center">Food Rating</h2>
+                <h2 className="text-xl font-bold mb-4 text-center">Rate Your Lunch</h2>
                 {error && <p className="text-red-500 text-sm">{error}</p>}
-                {output && <p className="text-green-600 text-sm mb-4">{output}</p>}
 
                 <form onSubmit={handleSubmit}>
                     {questions.length > 0 ? (
@@ -106,7 +101,7 @@ const Rating = () => {
                                     className="w-full p-2 border rounded"
                                     value={responses[q.id] || ""}
                                     onChange={(e) => handleChange(q.id, e.target.value)}
-                                    disabled={isSubmitted}
+                                    disabled={submitted}
                                 >
                                     <option value="" disabled>Select an option</option>
                                     {q.options.map((option, index) => (
@@ -121,10 +116,10 @@ const Rating = () => {
 
                     <button
                         type="submit"
-                        className={`w-full p-2 rounded ${isSubmitted ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 text-white hover:bg-blue-600"}`}
-                        disabled={isSubmitted}
+                        className={`w-full p-2 rounded ${submitted ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 text-white hover:bg-blue-600"}`}
+                        disabled={submitted}
                     >
-                        {isSubmitted ? "Already Submitted" : "Submit Rating"}
+                        {submitted ? "Already Submitted" : "Submit Rating"}
                     </button>
                 </form>
             </div>

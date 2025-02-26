@@ -51,7 +51,6 @@ function defineLunchEndpoints(app) {
 
             const [rows] = await pool.query("CALL GetUserLunches(?)", [email]);
 
-
             return res.status(200).json(rows[0]); // Procedura vrací pole v poli, bereme první prvek
         } catch (err) {
             console.error("Error fetching lunches:", err);
