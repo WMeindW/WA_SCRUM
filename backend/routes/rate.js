@@ -66,6 +66,25 @@ function defineAPIRatingEndpoint(app) {
             return res.status(500).send("Error processing vote recording request");
         }
     });
+
+    // Fetch questions and options
+    app.get("/api/questions", async (req, res) => {
+        try {
+            const [questions] = await pool.query("SELECT id, text FROM questions");
+            const [options] = await pool.query("SELECT question_id, option_text FROM question_options");
+
+            const formattedQuestions = questions.map(q => ({
+                id: q.id,
+                text: q.text,
+                options: options.filter(opt => opt.question_id === q.id).map(opt => opt.option_text),
+            }));
+
+            res.status(200).json(formattedQuestions);
+        } catch (error) {
+            console.error("Error fetching questions:", error);
+            res.status(500).json({ error: "Internal server error" });
+        }
+    });
 }
 
 module.exports = { defineAPIRatingEndpoint };

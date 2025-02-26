@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Rating from "./Rating"; // Import the Rating component
 
 interface Lunch {
     lunch_id: number;
@@ -14,7 +14,7 @@ const Lunches = () => {
     const [lunches, setLunches] = useState<Lunch[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const navigate = useNavigate();
+    const [selectedLunchId, setSelectedLunchId] = useState<number | null>(null);
     const userEmail = localStorage.getItem("userEmail");
 
     useEffect(() => {
@@ -31,19 +31,13 @@ const Lunches = () => {
                     throw new Error("Invalid API response format");
                 }
             })
-            .catch((err) => {
-                console.error("Error fetching lunches:", err);
-                setError("Failed to load lunches.");
-            })
+            .catch(() => setError("Failed to load lunches."))
             .finally(() => setLoading(false));
     }, [userEmail]);
 
-    const handleLunchClick = (lunchId: number, rated: boolean) => {
-        if (!rated) {
-            navigate(`/rating/${lunchId}`);
-        }
+    const handleLunchClick = (lunchId: number) => {
+        setSelectedLunchId((prev) => (prev === lunchId ? null : lunchId)); // Toggle visibility
     };
-
 
     return (
         <div className="container mx-auto p-6">
@@ -55,12 +49,14 @@ const Lunches = () => {
             <h2 className="text-xl font-semibold mt-4">Unrated Lunches</h2>
             <ul>
                 {lunches.filter(l => !l.rated).map(lunch => (
-                    <li
-                        key={lunch.lunch_id}
-                        onClick={() => handleLunchClick(lunch.lunch_id, lunch.rated)}
-                        className="cursor-pointer p-2 border rounded bg-yellow-100 hover:bg-yellow-200 mt-2"
-                    >
-                        {lunch.name} - {new Date(lunch.lunch_date).toLocaleDateString()}
+                    <li key={lunch.lunch_id} className="p-2 border rounded bg-yellow-100 mt-2">
+                        <button
+                            onClick={() => handleLunchClick(lunch.lunch_id)}
+                            className="cursor-pointer w-full text-left hover:bg-yellow-200 p-2 rounded"
+                        >
+                            {lunch.name} - {new Date(lunch.lunch_date).toLocaleDateString()}
+                        </button>
+                        {selectedLunchId === lunch.lunch_id && <Rating lunch_id={lunch.lunch_id} />}
                     </li>
                 ))}
             </ul>
