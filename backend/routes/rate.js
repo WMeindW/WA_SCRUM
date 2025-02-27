@@ -1,4 +1,5 @@
 const {pool} = require("../db_conn");
+const {login} = require("./login");
 
 function defineAPIRatingEndpoint(app) {
     app.get("/api/can-vote", async (req, res) => {
@@ -86,31 +87,30 @@ function defineAPIRatingEndpoint(app) {
     });
 
     app.post("/api/rate", async (req, res) => {
-        const {email, lunch_id, responses} = req.body;
+        const {email, lunch_id, responses, password} = req.body;
 
-        if (!email || !lunch_id || !responses || Object.keys(responses).length !== 5) {
+        if (!email || !lunch_id || !responses || !password || Object.keys(responses).length !== 5) {
             return res.status(400).json({error: "Chybí některý parametr nebo špatný počet odpovědí!"});
         }
 
         try {
+            const isSuccess = await login({username: email, password: password});
+            if (!isSuccess) {
+                res.status(403).json({message: "Špatný login."});
+                return;
+            }
+
             console.log(`📢 Uživatel ${email} hodnotí oběd s ID ${lunch_id}`);
 
             // Připravíme parametry pro proceduru
-            const params = [
-                email, lunch_id,
-                parseInt(Object.keys(responses)[0]), parseInt(Object.values(responses)[0]),
-                parseInt(Object.keys(responses)[1]), parseInt(Object.values(responses)[1]),
-                parseInt(Object.keys(responses)[2]), parseInt(Object.values(responses)[2]),
-                parseInt(Object.keys(responses)[3]), parseInt(Object.values(responses)[3]),
-                parseInt(Object.keys(responses)[4]), parseInt(Object.values(responses)[4])
-            ];
+            const params = [email, lunch_id, parseInt(Object.keys(responses)[0]), parseInt(Object.values(responses)[0]), parseInt(Object.keys(responses)[1]), parseInt(Object.values(responses)[1]), parseInt(Object.keys(responses)[2]), parseInt(Object.values(responses)[2]), parseInt(Object.keys(responses)[3]), parseInt(Object.values(responses)[3]), parseInt(Object.keys(responses)[4]), parseInt(Object.values(responses)[4])];
 
             await pool.query("CALL RateLunch(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", params);
 
             res.status(200).json({message: "Hodnocení uloženo."});
         } catch (error) {
             console.error("❌ Chyba při ukládání hodnocení:", error);
-            res.status(500).json({error: "Chyba při ukládání hodnocení"});
+            res.status(400).json({error: "Chyba při ukládání hodnocení."});
         }
     });
 }
