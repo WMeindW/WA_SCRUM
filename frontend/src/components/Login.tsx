@@ -21,10 +21,10 @@ const Login = () => {
                 password,
             });
 
-            if (response.data.success) {
-                // Store user email in localStorage
+            if (response.status == 200) {
                 localStorage.setItem("userEmail", email);
                 alert("Login successful!");
+                window.location.href = '/lunches'
             } else {
                 setError("Invalid credentials");
             }

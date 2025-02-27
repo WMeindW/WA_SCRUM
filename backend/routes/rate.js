@@ -67,7 +67,6 @@ function defineAPIRatingEndpoint(app) {
         }
     });
 
-    // Fetch questions and options
     app.get("/api/questions", async (req, res) => {
         try {
             const [questions] = await pool.query("SELECT id, text FROM questions");
