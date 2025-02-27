@@ -16,9 +16,9 @@ const Rating = ({ lunch_id, meal }: RatingProps) => {
     const [questions, setQuestions] = useState<Question[]>([]);
     const [responses, setResponses] = useState<Record<number, number>>({});
     const [error, setError] = useState("");
-    const [submitted, setSubmitted] = useState(false);
 
     const userEmail = localStorage.getItem("userEmail");
+    const password = localStorage.getItem("password");
 
     useEffect(() => {
         if (!userEmail) {
@@ -52,19 +52,12 @@ const Rating = ({ lunch_id, meal }: RatingProps) => {
         try {
             const submitResponse = await axios.post("http://localhost:5000/api/rate", {
                 email: userEmail,
+                password: password,
                 lunch_id,
                 meal,
                 responses,
             });
 
-            if (submitResponse.data.success) {
-                await axios.post("http://localhost:5000/api/update-vote-date", { email: userEmail });
-
-                setSubmitted(true);
-                alert("Success: Your rating has been submitted!");
-            } else {
-                alert("Error: Submission failed. Please try again.");
-            }
         } catch (err: any) {
             alert(`Error: ${err.response?.data?.message || "Server error. Please try again later."}`);
         }
@@ -99,8 +92,8 @@ const Rating = ({ lunch_id, meal }: RatingProps) => {
                         </div>
                     </div>
                 ))}
-                <button type="submit" className="submit-button" disabled={submitted}>
-                    {submitted ? "Already Submitted" : "Submit Rating"}
+                <button type="submit" className="submit-button">
+                    Submit Rating
                 </button>
             </form>
         </div>
