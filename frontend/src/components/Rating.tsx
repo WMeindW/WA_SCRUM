@@ -1,4 +1,4 @@
-import {useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
 interface Question {
@@ -8,9 +8,9 @@ interface Question {
 }
 
 interface RatingProps {
-    lunch_id: number,
-    meal: string,
-    onRatingSubmitted?: (lunchId: number) => void
+    lunch_id: number;
+    meal: string;
+    onRatingSubmitted?: (lunchId: number) => void;
 }
 
 const Rating = ({ lunch_id, meal, onRatingSubmitted }: RatingProps) => {
@@ -27,8 +27,17 @@ const Rating = ({ lunch_id, meal, onRatingSubmitted }: RatingProps) => {
             return;
         }
 
-        axios.get("http://localhost:5000/api/questions")
-            .then((res) => setQuestions(res.data))
+        axios.get("/jidelna/api/questions")
+            .then((res) => {
+                setQuestions(res.data);
+
+                // Initialize responses with default middle values (shifted by +1)
+                const defaultResponses: Record<number, number> = {};
+                res.data.forEach((q: Question) => {
+                    defaultResponses[q.id] = Math.floor(q.options.length / 2) + 1;
+                });
+                setResponses(defaultResponses);
+            })
             .catch(() => setError("Failed to load questions."));
     }, [lunch_id, userEmail]);
 
@@ -51,21 +60,24 @@ const Rating = ({ lunch_id, meal, onRatingSubmitted }: RatingProps) => {
         }
 
         try {
-            await axios.post("http://localhost:5000/api/rate", {
+            // Ensure all responses start from 1 (shift indexes +1)
+            const adjustedResponses = Object.fromEntries(
+                Object.entries(responses).map(([key, value]) => [key, value])
+            );
+
+            await axios.post("/jidelna/api/rate", {
                 email: userEmail,
                 password: password,
                 lunch_id,
                 meal,
-                responses,
+                responses: adjustedResponses, // Store adjusted values
             });
 
             alert("Rating submitted successfully!");
 
-            // Call onRatingSubmitted to move lunch from unrated to rated
             if (onRatingSubmitted) {
                 onRatingSubmitted(lunch_id);
             }
-
         } catch (err) {
             setError("Failed to submit rating.");
         }
@@ -82,17 +94,17 @@ const Rating = ({ lunch_id, meal, onRatingSubmitted }: RatingProps) => {
                         <p>{q.text}</p>
                         <input
                             type="range"
-                            min="0"
-                            max={q.options.length - 1}
+                            min="1" // Shifted from 0 → 1
+                            max={q.options.length}
                             step="1"
-                            value={responses[q.id] ?? Math.floor(q.options.length / 2)}
+                            value={responses[q.id] ?? Math.floor(q.options.length / 2) + 1}
                             onChange={(e) => handleChange(q.id, parseInt(e.target.value))}
                         />
                         <div className="options">
                             {q.options.map((option, index) => (
                                 <span
                                     key={index}
-                                    className={`option ${responses[q.id] === index ? "selected" : ""}`}
+                                    className={`option ${responses[q.id] === index + 1 ? "selected" : ""}`}
                                 >
                                     {index + 1}. {option}
                                 </span>
