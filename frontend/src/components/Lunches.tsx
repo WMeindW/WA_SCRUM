@@ -3,11 +3,12 @@ import axios from "axios";
 import Rating from "./Rating"; // Import the Rating component
 
 interface Lunch {
-    lunch_id: number;
-    name: string;
-    description: string;
-    lunch_date: string;
-    rated: boolean;
+    lunch_menu_id: number;
+    menu_date: string;
+    soup: string;
+    lunch1: string;
+    lunch2: string;
+    rated: number;
 }
 
 const Lunches = () => {
@@ -23,7 +24,7 @@ const Lunches = () => {
             return;
         }
 
-        axios.get(`http://localhost:5000/api/lunches/${userEmail}`)
+        axios.get(`http://localhost:5000/api/lunches?email=${userEmail}`)
             .then((res) => {
                 if (Array.isArray(res.data)) {
                     setLunches(res.data);
@@ -40,37 +41,39 @@ const Lunches = () => {
     };
 
     return (
-        <div className="container mx-auto p-6">
-            <h1 className="text-2xl font-bold mb-4">Your Lunches</h1>
+        <div className="container">
+            <h1>Your Lunches</h1>
 
             {loading && <p>Loading...</p>}
-            {error && <p className="text-red-500">{error}</p>}
+            {error && <p className="error-message">{error}</p>}
 
-            <h2 className="text-xl font-semibold mt-4">Unrated Lunches</h2>
-            <ul>
-                {lunches.filter(l => !l.rated).map(lunch => (
-                    <li key={lunch.lunch_id} className="p-2 border rounded bg-yellow-100 mt-2">
-                        <button
-                            onClick={() => handleLunchClick(lunch.lunch_id)}
-                            className="cursor-pointer w-full text-left hover:bg-yellow-200 p-2 rounded"
-                        >
-                            {lunch.name} - {new Date(lunch.lunch_date).toLocaleDateString()}
-                        </button>
-                        {selectedLunchId === lunch.lunch_id && <Rating lunch_id={lunch.lunch_id} />}
+            <h2>🍽 Unrated Lunches</h2>
+            <ul className="lunch-list">
+                {lunches.filter(l => l.rated === 0).map(lunch => (
+                    <li
+                        key={lunch.lunch_menu_id}
+                        className={`lunch-item unrated ${selectedLunchId === lunch.lunch_menu_id ? "selected-lunch" : ""}`}
+                        onClick={() => handleLunchClick(lunch.lunch_menu_id)}
+                    >
+                        🍜 {lunch.soup} | 🍽 {lunch.lunch1} & {lunch.lunch2} - {new Date(lunch.menu_date).toLocaleDateString()}
                     </li>
                 ))}
             </ul>
 
-            <h2 className="text-xl font-semibold mt-4">Rated Lunches</h2>
-            <ul>
-                {lunches.filter(l => l.rated).map(lunch => (
-                    <li key={lunch.lunch_id} className="p-2 border rounded bg-gray-100 mt-2">
-                        {lunch.name} - {new Date(lunch.lunch_date).toLocaleDateString()}
+            {selectedLunchId && <Rating lunch_id={selectedLunchId} />}
+
+            <h2>✅ Rated Lunches</h2>
+            <ul className="lunch-list">
+                {lunches.filter(l => l.rated === 1).map(lunch => (
+                    <li key={lunch.lunch_menu_id} className="lunch-item rated">
+                        🍜 {lunch.soup} | 🍽 {lunch.lunch1} & {lunch.lunch2} - {new Date(lunch.menu_date).toLocaleDateString()}
                     </li>
                 ))}
             </ul>
         </div>
     );
+
+
 };
 
 export default Lunches;
