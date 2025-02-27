@@ -24,7 +24,7 @@ const Login = () => {
             if (response.status == 200) {
                 localStorage.setItem("userEmail", email);
                 localStorage.setItem("password", password);
-                window.location.href = '/jidelna/lunches'
+                window.location.href = '/jidelna/api/lunches';
             } else {
                 setError("Invalid credentials");
             }
