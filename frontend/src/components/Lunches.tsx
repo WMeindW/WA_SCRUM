@@ -47,6 +47,17 @@ const Lunches = () => {
         }
     };
 
+    const handleRatingSubmitted = (lunchId: number) => {
+        setLunches((prevLunches) =>
+            prevLunches.map((lunch) =>
+                lunch.lunch_menu_id === lunchId ? { ...lunch, rated: 1 } : lunch
+            )
+        );
+        setSelectedLunchId(null); // Hide the rating form
+        setSelectedMeal(null);
+    };
+
+
     return (
         <div className="container">
             <h1>Your Lunches</h1>
@@ -82,7 +93,13 @@ const Lunches = () => {
                 </div>
             )}
 
-            {selectedLunchId && selectedMeal && <Rating lunch_id={selectedLunchId} meal={selectedMeal} />}
+            {selectedLunchId && selectedMeal && (
+                <Rating
+                    lunch_id={selectedLunchId}
+                    meal={selectedMeal}
+                    onRatingSubmitted={handleRatingSubmitted} // Pass the function
+                />
+            )}
 
             <h2>✅ Rated Lunches</h2>
             <ul className="lunch-list">
