@@ -23,7 +23,6 @@ const Login = () => {
 
             if (response.status == 200) {
                 localStorage.setItem("userEmail", email);
-                alert("Login successful!");
                 window.location.href = '/lunches'
             } else {
                 setError("Invalid credentials");

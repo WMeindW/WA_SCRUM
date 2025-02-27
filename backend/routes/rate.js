@@ -84,7 +84,7 @@ function defineAPIRatingEndpoint(app) {
             res.status(500).json({error: "Internal server error"});
         }
     });
-    app.post("/api/rate", async (req, res) => {
+    app.post("/api/submit-rating", async (req, res) => {
         const {email, lunch_id, responses} = req.body;
 
         if (!email || !lunch_id || !responses || Object.keys(responses).length !== 5) {
