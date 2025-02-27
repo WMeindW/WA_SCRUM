@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import {useState, useEffect} from "react";
 import axios from "axios";
 
 interface Question {
@@ -8,11 +8,12 @@ interface Question {
 }
 
 interface RatingProps {
-    lunch_id: number;
-    meal: string; // Either "lunch1" or "lunch2"
+    lunch_id: number,
+    meal: string,
+    onRatingSubmitted?: (lunchId: number) => void
 }
 
-const Rating = ({ lunch_id, meal }: RatingProps) => {
+const Rating = ({ lunch_id, meal, onRatingSubmitted }: RatingProps) => {
     const [questions, setQuestions] = useState<Question[]>([]);
     const [responses, setResponses] = useState<Record<number, number>>({});
     const [error, setError] = useState("");
@@ -50,7 +51,7 @@ const Rating = ({ lunch_id, meal }: RatingProps) => {
         }
 
         try {
-            const submitResponse = await axios.post("http://localhost:5000/api/rate", {
+            await axios.post("http://localhost:5000/api/rate", {
                 email: userEmail,
                 password: password,
                 lunch_id,
@@ -58,8 +59,15 @@ const Rating = ({ lunch_id, meal }: RatingProps) => {
                 responses,
             });
 
-        } catch (err: any) {
-            alert(`Error: ${err.response?.data?.message || "Server error. Please try again later."}`);
+            alert("Rating submitted successfully!");
+
+            // Call onRatingSubmitted to move lunch from unrated to rated
+            if (onRatingSubmitted) {
+                onRatingSubmitted(lunch_id);
+            }
+
+        } catch (err) {
+            setError("Failed to submit rating.");
         }
     };
 
