@@ -50,7 +50,7 @@ const Rating = ({ lunch_id, meal }: RatingProps) => {
         }
 
         try {
-            const submitResponse = await axios.post("http://localhost:5000/api/submit-rating", {
+            const submitResponse = await axios.post("http://localhost:5000/api/rate", {
                 email: userEmail,
                 lunch_id,
                 meal,

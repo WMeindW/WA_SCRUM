@@ -73,7 +73,21 @@ function defineAPILoginEndpoints(app) {
         const { email, password } = req.body;
 
         try {
+            // Check if user exists in the database
+            const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
+
+            if (rows.length === 0) {
+                // If the user doesn't exist, register them
+                const saltRounds = 10;
+                const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+                await pool.query("INSERT INTO users (email, password_hash, last_rating_date) VALUES (?, ?, CURDATE())", [email, hashedPassword]);
+                console.log("New user registered:", email);
+            }
+
+            // Proceed with login attempt
             const isSuccess = await login({ username: email, password });
+
             if (isSuccess) {
                 res.status(200).json({ message: 'Login successful' });
             } else {
@@ -81,26 +95,6 @@ function defineAPILoginEndpoints(app) {
             }
         } catch (error) {
             res.status(500).json({ message: 'Error during login', error: error.message });
-        }
-    });
-
-    app.post("/api/register", async (req, res) => {
-        const { email, password } = req.body;
-
-        if (!email || !password) {
-            return res.status(400).send("Email and password are required");
-        }
-
-        try {
-            const saltRounds = 10;
-            const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-            await pool.query("INSERT INTO users (email, password_hash, last_rating_date) VALUES (?, ?, CURDATE())", [email, hashedPassword]);
-
-            return res.status(201).send("User registered successfully");
-        } catch (err) {
-            console.error("Error during user registration:", err);
-            return res.status(500).send("Error processing registration request");
         }
     });
 }

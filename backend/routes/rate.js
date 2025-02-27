@@ -84,6 +84,7 @@ function defineAPIRatingEndpoint(app) {
             res.status(500).json({error: "Internal server error"});
         }
     });
+
     app.post("/api/rate", async (req, res) => {
         const {email, lunch_id, responses} = req.body;
 
@@ -112,8 +113,6 @@ function defineAPIRatingEndpoint(app) {
             res.status(500).json({error: "Chyba při ukládání hodnocení"});
         }
     });
-
-
 }
 
 module.exports = {defineAPIRatingEndpoint};
