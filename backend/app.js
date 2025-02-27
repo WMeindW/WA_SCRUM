@@ -17,6 +17,8 @@ startServer(app);
 function configureApp(app) {
     app.use(cors());
     app.use(bodyParser.json());
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true })); // Middleware pro URL-encoded data
 }
 
 function startServer(app) {
