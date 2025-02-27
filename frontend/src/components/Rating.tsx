@@ -9,9 +9,10 @@ interface Question {
 
 interface RatingProps {
     lunch_id: number;
+    meal: string; // Either "lunch1" or "lunch2"
 }
 
-const Rating = ({ lunch_id }: RatingProps) => {
+const Rating = ({ lunch_id, meal }: RatingProps) => {
     const [questions, setQuestions] = useState<Question[]>([]);
     const [responses, setResponses] = useState<Record<number, number>>({});
     const [error, setError] = useState("");
@@ -52,6 +53,7 @@ const Rating = ({ lunch_id }: RatingProps) => {
             const submitResponse = await axios.post("http://localhost:5000/api/submit-rating", {
                 email: userEmail,
                 lunch_id,
+                meal,
                 responses,
             });
 
@@ -70,7 +72,7 @@ const Rating = ({ lunch_id }: RatingProps) => {
 
     return (
         <div className="rating-form">
-            <h2>🍴 Rate Your Lunch</h2>
+            <h2>🍴 Rate {meal === "lunch1" ? "Meal 1" : "Meal 2"}</h2>
             {error && <p className="error-message">{error}</p>}
 
             <form onSubmit={handleSubmit}>

@@ -16,6 +16,7 @@ const Lunches = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [selectedLunchId, setSelectedLunchId] = useState<number | null>(null);
+    const [selectedMeal, setSelectedMeal] = useState<string | null>(null);
     const userEmail = localStorage.getItem("userEmail");
 
     useEffect(() => {
@@ -37,7 +38,13 @@ const Lunches = () => {
     }, [userEmail]);
 
     const handleLunchClick = (lunchId: number) => {
-        setSelectedLunchId((prev) => (prev === lunchId ? null : lunchId)); // Toggle visibility
+        if (selectedLunchId === lunchId) {
+            setSelectedLunchId(null);
+            setSelectedMeal(null);
+        } else {
+            setSelectedLunchId(lunchId);
+            setSelectedMeal(null);
+        }
     };
 
     return (
@@ -60,7 +67,22 @@ const Lunches = () => {
                 ))}
             </ul>
 
-            {selectedLunchId && <Rating lunch_id={selectedLunchId} />}
+            {selectedLunchId && (
+                <div className="meal-selection">
+                    <h3>Select the meal to rate:</h3>
+                    <select value={selectedMeal || ""} onChange={(e) => setSelectedMeal(e.target.value)}>
+                        <option value="" disabled>Select a meal</option>
+                        {lunches.find(l => l.lunch_menu_id === selectedLunchId) && (
+                            <>
+                                <option value="lunch1">{lunches.find(l => l.lunch_menu_id === selectedLunchId)?.lunch1}</option>
+                                <option value="lunch2">{lunches.find(l => l.lunch_menu_id === selectedLunchId)?.lunch2}</option>
+                            </>
+                        )}
+                    </select>
+                </div>
+            )}
+
+            {selectedLunchId && selectedMeal && <Rating lunch_id={selectedLunchId} meal={selectedMeal} />}
 
             <h2>✅ Rated Lunches</h2>
             <ul className="lunch-list">
@@ -72,8 +94,6 @@ const Lunches = () => {
             </ul>
         </div>
     );
-
-
 };
 
 export default Lunches;
