@@ -1,8 +1,8 @@
-const { pool } = require("../db_conn");
+const {pool} = require("../db_conn");
 
 function defineAPIRatingEndpoint(app) {
     app.get("/api/can-vote", async (req, res) => {
-        const { email } = req.query;
+        const {email} = req.query;
 
         console.log("Received eligibility check request for email:", email);
 
@@ -28,12 +28,12 @@ function defineAPIRatingEndpoint(app) {
                     const diffInTime = now.getTime() - lastRatingDate.getTime();
                     const diffInDays = diffInTime / (1000 * 3600 * 24);
                     if (diffInDays >= 1) {
-                        return res.status(200).json({ canVote: true });
+                        return res.status(200).json({canVote: true});
                     } else {
-                        return res.status(200).json({ canVote: false });
+                        return res.status(200).json({canVote: false});
                     }
                 } else {
-                    return res.status(200).json({ canVote: true });
+                    return res.status(200).json({canVote: true});
                 }
             } else {
                 return res.status(404).send("User not found");
@@ -45,7 +45,7 @@ function defineAPIRatingEndpoint(app) {
     });
 
     app.get("/api/update-vote-date", async (req, res) => {
-        const { email } = req.query;
+        const {email} = req.query;
 
         if (!email) {
             return res.status(400).send("Email is required");
@@ -82,9 +82,39 @@ function defineAPIRatingEndpoint(app) {
             res.status(200).json(formattedQuestions);
         } catch (error) {
             console.error("Error fetching questions:", error);
-            res.status(500).json({ error: "Internal server error" });
+            res.status(500).json({error: "Internal server error"});
         }
     });
+    app.post("/api/rate", async (req, res) => {
+        const {email, lunch_id, responses} = req.body;
+
+        if (!email || !lunch_id || !responses || Object.keys(responses).length !== 5) {
+            return res.status(400).json({error: "Chybí některý parametr nebo špatný počet odpovědí!"});
+        }
+
+        try {
+            console.log(`📢 Uživatel ${email} hodnotí oběd s ID ${lunch_id}`);
+
+            // Připravíme parametry pro proceduru
+            const params = [
+                email, lunch_id,
+                parseInt(Object.keys(responses)[0]), parseInt(Object.values(responses)[0]),
+                parseInt(Object.keys(responses)[1]), parseInt(Object.values(responses)[1]),
+                parseInt(Object.keys(responses)[2]), parseInt(Object.values(responses)[2]),
+                parseInt(Object.keys(responses)[3]), parseInt(Object.values(responses)[3]),
+                parseInt(Object.keys(responses)[4]), parseInt(Object.values(responses)[4])
+            ];
+
+            await pool.query("CALL RateLunch(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", params);
+
+            res.status(200).json({message: "Hodnocení uloženo."});
+        } catch (error) {
+            console.error("❌ Chyba při ukládání hodnocení:", error);
+            res.status(500).json({error: "Chyba při ukládání hodnocení"});
+        }
+    });
+
+
 }
 
-module.exports = { defineAPIRatingEndpoint };
+module.exports = {defineAPIRatingEndpoint};
