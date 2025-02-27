@@ -173,3 +173,25 @@ input[type="range"] {
 .lunch-item {
     transition: all 0.3s ease-in-out;
 }
+
+.question-container {
+    margin-bottom: 20px;
+}
+
+.options {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-size: 14px;
+}
+
+.option {
+    padding: 2px 5px;
+    border-radius: 5px;
+}
+
+.option.selected {
+    background-color: #4caf50;
+    color: white;
+    font-weight: bold;
+}

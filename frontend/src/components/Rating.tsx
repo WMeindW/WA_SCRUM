@@ -75,16 +75,26 @@ const Rating = ({ lunch_id }: RatingProps) => {
 
             <form onSubmit={handleSubmit}>
                 {questions.map((q) => (
-                    <div key={q.id}>
+                    <div key={q.id} className="question-container">
                         <p>{q.text}</p>
                         <input
                             type="range"
                             min="0"
                             max={q.options.length - 1}
                             step="1"
-                            value={responses[q.id] || Math.floor(q.options.length / 2)}
+                            value={responses[q.id] ?? Math.floor(q.options.length / 2)}
                             onChange={(e) => handleChange(q.id, parseInt(e.target.value))}
                         />
+                        <div className="options">
+                            {q.options.map((option, index) => (
+                                <span
+                                    key={index}
+                                    className={`option ${responses[q.id] === index ? "selected" : ""}`}
+                                >
+                                    {index + 1}. {option}
+                                </span>
+                            ))}
+                        </div>
                     </div>
                 ))}
                 <button type="submit" className="submit-button" disabled={submitted}>
