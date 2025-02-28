@@ -26,7 +26,7 @@ const Login = () => {
                 console.log(password);
                 localStorage.setItem("userEmail", email);
                 localStorage.setItem("password", password);
-                window.location.href = 'http://localhost:5000/api/lunches';
+                window.location.href = '/lunches';
             } else {
                 setError("Invalid credentials");
             }
