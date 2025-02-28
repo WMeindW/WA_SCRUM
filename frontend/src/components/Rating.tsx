@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import {useEffect, useState} from "react";
 import axios from "axios";
 
 interface Question {
@@ -13,7 +13,7 @@ interface RatingProps {
     onRatingSubmitted?: (lunchId: number) => void;
 }
 
-const Rating = ({ lunch_id, meal, onRatingSubmitted }: RatingProps) => {
+const Rating = ({lunch_id, meal, onRatingSubmitted}: RatingProps) => {
     const [questions, setQuestions] = useState<Question[]>([]);
     const [responses, setResponses] = useState<Record<number, number>>({});
     const [error, setError] = useState("");
@@ -27,7 +27,7 @@ const Rating = ({ lunch_id, meal, onRatingSubmitted }: RatingProps) => {
             return;
         }
 
-        axios.get("/jidelna/api/questions")
+        axios.get("http://localhost:5000/api/questions")
             .then((res) => {
                 setQuestions(res.data);
 
@@ -42,7 +42,7 @@ const Rating = ({ lunch_id, meal, onRatingSubmitted }: RatingProps) => {
     }, [lunch_id, userEmail]);
 
     const handleChange = (id: number, value: number) => {
-        setResponses((prev) => ({ ...prev, [id]: value }));
+        setResponses((prev) => ({...prev, [id]: value}));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -65,7 +65,7 @@ const Rating = ({ lunch_id, meal, onRatingSubmitted }: RatingProps) => {
                 Object.entries(responses).map(([key, value]) => [key, value])
             );
 
-            await axios.post("/jidelna/api/rate", {
+            await axios.post("http://localhost:5000/api/rate", {
                 email: userEmail,
                 password: password,
                 lunch_id,

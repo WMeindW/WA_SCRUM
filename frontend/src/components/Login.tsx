@@ -16,15 +16,17 @@ const Login = () => {
         }
 
         try {
-            const response = await axios.post("/jidelna/api/login", {
+            const response = await axios.post("http://localhost:5000/api/login", {
                 email,
                 password,
             });
 
             if (response.status == 200) {
+                console.log(email);
+                console.log(password);
                 localStorage.setItem("userEmail", email);
                 localStorage.setItem("password", password);
-                window.location.href = '/jidelna/api/lunches';
+                window.location.href = 'http://localhost:5000/api/lunches';
             } else {
                 setError("Invalid credentials");
             }
