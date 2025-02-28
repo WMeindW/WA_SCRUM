@@ -16,7 +16,7 @@ const Login = () => {
         }
 
         try {
-            const response = await axios.post("http://localhost:5000/api/login", {
+            const response = await axios.post("/jidelna/api/login", {
                 email,
                 password,
             });
@@ -26,7 +26,7 @@ const Login = () => {
                 console.log(password);
                 localStorage.setItem("userEmail", email);
                 localStorage.setItem("password", password);
-                window.location.href = '/lunches';
+                window.location.href = 'lunches';
             } else {
                 setError("Invalid credentials");
             }
