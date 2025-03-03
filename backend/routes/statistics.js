@@ -1,15 +1,18 @@
 const nodemailer = require('nodemailer');
 const fs = require('fs').promises;
+const {login} = require('./login');
 
 function defineAPIStatisticsEndpoint(app) {
     app.post('/api/statistics', async (req, res) => {
-        const { email } = req.body;
+        const { email,user,password } = req.body;
 
-        if (!email) {
+        if (!email || !user || !password) {
             return res.status(400).json({ error: 'Chybí povinné údaje' });
         }
 
-        const schoolEmail = `${email}@spsejecna.cz`;
+        if (!await login({username: user, password})){
+            return res.status(400).json({ error: 'Uzivatel neni autorizovany' });
+        }
 
         const statisticsFile = await generateStatisticsFile();
         if (!statisticsFile) {
@@ -17,7 +20,7 @@ function defineAPIStatisticsEndpoint(app) {
         }
 
         try {
-            await sendEmailWithAttachment(schoolEmail, statisticsFile);
+            await sendEmailWithAttachment(email, statisticsFile);
             res.json({ message: 'Statistiky byly úspěšně odeslány' });
         } catch (error) {
             console.log(error);
