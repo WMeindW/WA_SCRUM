@@ -16,7 +16,7 @@ const Login = () => {
         }
 
         try {
-            const response = await axios.post("/jidelna/api/login", {
+            const response = await axios.post("/api/login", {
                 email,
                 password,
             });

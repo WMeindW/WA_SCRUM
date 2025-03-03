@@ -31,7 +31,6 @@ const Rating = ({lunch_id, meal, onRatingSubmitted}: RatingProps) => {
             .then((res) => {
                 setQuestions(res.data);
 
-                // Initialize responses with default middle values (shifted by +1)
                 const defaultResponses: Record<number, number> = {};
                 res.data.forEach((q: Question) => {
                     defaultResponses[q.id] = Math.floor(q.options.length / 2) + 1;
