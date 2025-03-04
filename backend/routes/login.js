@@ -14,23 +14,19 @@ function defineAPILoginEndpoints(app) {
         const { email, password } = req.body;
 
         try {
-            // Check if user exists in the database
             const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
+            const admin = rows[0].is_admin
 
             if (rows.length === 0) {
-                // If the user doesn't exist, register them
                 const saltRounds = 10;
                 const hashedPassword = await bcrypt.hash(password, saltRounds);
 
                 await pool.query("INSERT INTO users (email, password_hash, last_rating_date) VALUES (?, ?, CURDATE())", [email, hashedPassword]);
                 console.log("New user registered:", email);
             }
-
-            // Proceed with login attempt
             const isSuccess = await login({ username: email, password });
-
             if (isSuccess) {
-                res.status(200).json({ message: 'Login successful' });
+                res.status(200).json({ message: 'Login successful' , admin : admin});
             } else {
                 res.status(401).json({ message: 'Invalid credentials' });
             }
