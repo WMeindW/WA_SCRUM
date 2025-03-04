@@ -25,7 +25,7 @@ const Lunches = () => {
             return;
         }
 
-        axios.get(`/jidelna/api/lunches?email=${userEmail}`)
+        axios.get(`http://localhost:5000/api/lunches?email=${userEmail}`)
             .then((res) => {
                 if (Array.isArray(res.data)) {
                     setLunches(res.data);

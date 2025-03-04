@@ -27,7 +27,7 @@ const Rating = ({lunch_id, meal, onRatingSubmitted}: RatingProps) => {
             return;
         }
 
-        axios.get("/jidelna/api/questions")
+        axios.get("http://localhost:5000/api/questions")
             .then((res) => {
                 setQuestions(res.data);
 
@@ -64,7 +64,7 @@ const Rating = ({lunch_id, meal, onRatingSubmitted}: RatingProps) => {
                 Object.entries(responses).map(([key, value]) => [key, value])
             );
 
-            await axios.post("/jidelna/api/rate", {
+            await axios.post("http://localhost:5000/api/rate", {
                 email: userEmail,
                 password: password,
                 lunch_id,
