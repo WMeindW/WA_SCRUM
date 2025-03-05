@@ -27,6 +27,18 @@ function defineAPIStatisticsEndpoint(app) {
             res.status(500).json({ error: 'Chyba při odesílání emailu' });
         }
     });
+
+    app.get('/api/statistics-data', async (req, res) => {
+        const data = [
+            { id: 1, name: "Jan Novák", orderCount: 5, totalSpent: "2500 Kč" },
+            { id: 2, name: "Petr Svoboda", orderCount: 3, totalSpent: "1800 Kč" },
+            { id: 3, name: "Alena Dvořáková", orderCount: 7, totalSpent: "3200 Kč" },
+            { id: 4, name: "Lucie Králová", orderCount: 2, totalSpent: "900 Kč" }
+        ];
+
+        res.json(data);
+    });
+
 }
 
 async function generateStatisticsFile() {

@@ -21,12 +21,15 @@ const Login = () => {
                 password,
             });
 
-            if (response.status == 200) {
-                console.log(email);
-                console.log(password);
+            if (response.status === 200) {
                 localStorage.setItem("userEmail", email);
                 localStorage.setItem("password", password);
-                window.location.href = '/lunches';
+
+                if (response.data.admin) {
+                    window.location.href = "/admin-statistics"; // Redirect to admin page
+                } else {
+                    window.location.href = "/lunches"; // Redirect to normal user page
+                }
             } else {
                 setError("Invalid credentials");
             }
@@ -34,6 +37,7 @@ const Login = () => {
             setError("Server error. Please try again.");
         }
     };
+
 
     return (
         <div className="login-container">

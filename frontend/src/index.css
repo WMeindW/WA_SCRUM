@@ -229,3 +229,9 @@ input[type="range"] {
     border-color: #2563eb;
     box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
 }
+
+.anomaly-warning {
+    font-weight: bold;
+    color: red;
+    margin-left: 10px;
+}
