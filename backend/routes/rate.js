@@ -1,6 +1,7 @@
 const {pool} = require("../db_conn");
 const {login} = require("./login");
 
+
 function defineAPIRatingEndpoint(app) {
     app.get("/api/can-vote", async (req, res) => {
         const {email} = req.query;
