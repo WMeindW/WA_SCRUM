@@ -29,7 +29,7 @@ const Lunches = () => {
             return;
         }
 
-        axios.get(`http://localhost:5000/api/lunches?email=${userEmail}`)
+        axios.get(`/jidelna/api/lunches?email=${userEmail}`)
             .then((res) => {
                 if (Array.isArray(res.data)) {
                     setLunches(res.data);
@@ -49,7 +49,7 @@ const Lunches = () => {
             try {
                 const ratingPromises = lunches.map(async (lunch) => {
                     try {
-                        const res = await axios.get(`http://localhost:5000/lunch/${lunch.lunch_menu_id}/rating`);
+                        const res = await axios.get(`/jidelna/lunch/${lunch.lunch_menu_id}/rating`);
                         if (res.data.error) {
                             // If the API returns an error, return null for meanRating
                             return { lunch_menu_id: lunch.lunch_menu_id, meanRating: null };

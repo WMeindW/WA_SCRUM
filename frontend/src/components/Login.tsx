@@ -16,7 +16,7 @@ const Login = () => {
         }
 
         try {
-            const response = await axios.post("http://localhost:5000/api/login", {
+            const response = await axios.post("/jidelna/api/login", {
                 email,
                 password,
             });
@@ -29,9 +29,9 @@ const Login = () => {
                 localStorage.setItem("isAdmin", response.data.admin ? "true" : "false");
 
                 if (response.data.admin) {
-                    window.location.href = "/statistics"; // Redirect to admin page
+                    window.location.href = "/jidelna/statistics"; // Redirect to admin page
                 } else {
-                    window.location.href = "/lunches"; // Redirect to normal user page
+                    window.location.href = "/jidelna/lunches"; // Redirect to normal user page
                 }
             } else {
                 setError("Invalid credentials");
