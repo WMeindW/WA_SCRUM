@@ -103,6 +103,11 @@ const Lunches = () => {
         setSelectedMeal(null);
     };
 
+    const handleLogout = () => {
+        localStorage.clear(); // Removes all stored user data
+        window.location.href = "/"; // Redirects to the login page
+    };
+
     return (
         <div className="container">
             <h1>Your Lunches</h1>
@@ -138,7 +143,7 @@ const Lunches = () => {
                                 </p>
                             </div>
                             <div className="lunch-footer">
-                                ⭐ <span className="rating">Rating: {lunch.meanRating !== undefined && lunch.meanRating !== null ? lunch.meanRating.toFixed(1) : "0"}</span>
+                                ⭐ <span className="rating">Rating: {lunch.meanRating !== undefined && lunch.meanRating !== null ? lunch.meanRating.toFixed(1) : "No Ratings"}</span>
                             </div>
                         </li>
                     );
@@ -195,15 +200,18 @@ const Lunches = () => {
                                 </p>
                             </div>
                             <div className="lunch-footer">
-                                ⭐ <span className="rating">Rating: {lunch.meanRating !== undefined && lunch.meanRating !== null ? lunch.meanRating.toFixed(1) : "0"}</span>
+                                ⭐ <span className="rating">Rating: {lunch.meanRating !== undefined && lunch.meanRating !== null ? lunch.meanRating.toFixed(1) : "No Ratings"}</span>
                             </div>
                         </li>
                     );
                 })}
             </ul>
+
+            <button onClick={handleLogout} className="logout-button">
+                🚪Logout
+            </button>
         </div>
     );
-
 };
 
 export default Lunches;

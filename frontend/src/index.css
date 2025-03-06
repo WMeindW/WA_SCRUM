@@ -305,8 +305,10 @@ input[type="range"] {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    max-width: 900px;
+    max-width: 1000px;
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
 }
 
 h2 {
@@ -404,13 +406,14 @@ h3 {
     cursor: not-allowed;
 }
 
-.admin-button-container {
+.button-container {
     display: flex;
+
     justify-content: center;
     margin-top: 30px;
 }
 
-.admin-button {
+.admin-button, .logout-button {
     padding: 10px 20px;
     font-size: 1rem;
     background-color: #2563eb;
@@ -418,8 +421,10 @@ h3 {
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    margin: 15px;
+    width: 200px;
 }
 
-.admin-button:hover {
+.admin-button:hover, .logout-button:hover {
     background-color: #1248bd;
 }

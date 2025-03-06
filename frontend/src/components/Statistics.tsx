@@ -72,6 +72,11 @@ const Statistics = () => {
         navigate("/lunches"); // Navigate to the lunch ratings page
     };
 
+    const handleLogout = () => {
+        localStorage.clear(); // Removes all stored user data
+        window.location.href = "/"; // Redirects to the login page
+    };
+
     return (
         <div className="statistics">
             <h2>📊 Statistiky</h2>
@@ -111,7 +116,7 @@ const Statistics = () => {
                         <td>
                             {statistics.best_rated?.avg_rating != null
                                 ? Math.round(statistics.best_rated.avg_rating * 100) / 100
-                                : "None"} ⭐
+                                : "No Ratings"} ⭐
                         </td>
                     </tr>
                 )}
@@ -125,7 +130,7 @@ const Statistics = () => {
                         <td>
                             {statistics.worst_rated?.avg_rating != null
                                 ? Math.round(statistics.worst_rated.avg_rating * 100) / 100
-                                : "None"} ⭐
+                                : "No Ratings"} ⭐
                         </td>
                     </tr>
                 )}
@@ -144,12 +149,16 @@ const Statistics = () => {
                 <button onClick={sendStatisticsEmail}>📧 Odeslat Statistiky</button>
             </div>
 
-            <div className="admin-button-container">
+            <div className="button-container">
                 {isAdmin && (
                     <button onClick={goToLunchRatings} className="admin-button">
                         🍴 Přejít na stránku hodnocení obědů
                     </button>
                 )}
+
+                <button onClick={handleLogout} className="logout-button">
+                    🚪Logout
+                </button>
             </div>
         </div>
     );

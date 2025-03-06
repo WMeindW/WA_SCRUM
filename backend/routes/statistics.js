@@ -38,10 +38,6 @@ function defineAPIStatisticsEndpoint(app) {
                 [lunchMenuId]
             );
 
-            if (!rows.length || rows[0].mean_rating === null) {
-                return res.status(404).json({ error: "Žádné hodnocení pro tento oběd" });
-            }
-
             res.json({ lunch_menu_id: lunchMenuId, mean_rating: parseFloat(rows[0].mean_rating) });
         } catch (error) {
             console.error("❌ Chyba při získávání hodnocení:", error);
