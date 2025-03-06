@@ -7,9 +7,9 @@ function App() {
     return (
         <Router>
             <Routes>
-                <Route path="/jidelna/lunches" element={<Lunches/>}/> {/* Lunches is the second page */}
-                <Route path="/jidelna/" element={<Login/>}/> {/* Login is the first page */}
-                <Route path="/jidelna/statistics" element={<Statistics/>}/> {}
+                <Route path="/lunches" element={<Lunches/>}/> {/* Lunches is the second page */}
+                <Route path="/" element={<Login/>}/> {/* Login is the first page */}
+                <Route path="/statistics" element={<Statistics/>}/> {}
             </Routes>
         </Router>
     );
