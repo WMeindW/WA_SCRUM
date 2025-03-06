@@ -28,6 +28,7 @@ function defineAPIStatisticsEndpoint(app) {
             res.status(500).json({ error: 'Chyba při odesílání emailu' });
         }
     });
+
     app.get("/lunch/:id/rating", async (req, res) => {
         const lunchMenuId = req.params.id;
 
@@ -47,6 +48,7 @@ function defineAPIStatisticsEndpoint(app) {
             res.status(500).json({ error: "Chyba serveru" });
         }
     });
+
     app.get("/lunch/stats", async (req, res) => {
         try {
             // 📌 1️⃣ Nejvíce hodnocený oběd
@@ -64,7 +66,7 @@ function defineAPIStatisticsEndpoint(app) {
 
             // 📌 2️⃣ Nejlépe hodnocený oběd
             const [bestRated] = await pool.query(
-                `SELECT lm.id, lm.date, s.name AS soup, l1.name AS lunch1, l2.name AS lunch2, AVG(ulr.rating) AS avg_rating
+                `SELECT lm.id, lm.date, s.name AS soup, l1.name AS lunch1, l2.name AS lunch2, ROUND(AVG(ulr.rating), 2) AS avg_rating
             FROM lunch_menus lm
             JOIN soups s ON lm.soup_id = s.id
             JOIN lunches l1 ON lm.main_course_1_id = l1.id
@@ -105,10 +107,6 @@ function defineAPIStatisticsEndpoint(app) {
     });
 
     module.exports = app;
-
-
-    module.exports = app;
-
 }
 
 async function generateStatisticsFile() {

@@ -25,6 +25,9 @@ const Login = () => {
                 localStorage.setItem("userEmail", email);
                 localStorage.setItem("password", password);
 
+                // Assuming the server responds with an 'admin' field that is true for admins
+                localStorage.setItem("isAdmin", response.data.admin ? "true" : "false");
+
                 if (response.data.admin) {
                     window.location.href = "/statistics"; // Redirect to admin page
                 } else {
@@ -37,7 +40,6 @@ const Login = () => {
             setError("Server error. Please try again.");
         }
     };
-
 
     return (
         <div className="login-container">

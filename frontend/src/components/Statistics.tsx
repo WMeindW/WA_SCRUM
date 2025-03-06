@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom"; // Import to navigate to another page
 
 interface Statistic {
     id: number;
@@ -12,11 +13,16 @@ interface Statistic {
 }
 
 const Statistics = () => {
-    const [statistics, setStatistics] = useState<{ most_rated: Statistic | null; best_rated: Statistic | null; worst_rated: Statistic | null; total_votes: number }>({
+    const [statistics, setStatistics] = useState<{
+        most_rated: Statistic | null;
+        best_rated: Statistic | null;
+        worst_rated: Statistic | null;
+        total_votes: number;
+    }>( {
         most_rated: null,
         best_rated: null,
         worst_rated: null,
-        total_votes: 0
+        total_votes: 0,
     });
     const [email, setEmail] = useState("");
     const [message, setMessage] = useState("");
@@ -24,6 +30,8 @@ const Statistics = () => {
 
     const user = localStorage.getItem("userEmail");
     const password = localStorage.getItem("password");
+    const isAdmin = localStorage.getItem("isAdmin") === "true"; // Get the admin status from localStorage
+    const navigate = useNavigate(); // Initialize navigate for navigation
 
     useEffect(() => {
         fetchStatistics();
@@ -51,13 +59,17 @@ const Statistics = () => {
             const response = await axios.post("http://localhost:5000/api/statistics", {
                 email,
                 user,
-                password
+                password,
             });
 
             setMessage(response.data.message);
         } catch (err) {
             setError("❌ Chyba při odesílání statistik.");
         }
+    };
+
+    const goToLunchRatings = () => {
+        navigate("/lunches"); // Navigate to the lunch ratings page
     };
 
     return (
@@ -82,7 +94,7 @@ const Statistics = () => {
                 {statistics.most_rated && (
                     <tr>
                         <td>🔥 Nejvíce hodnocený</td>
-                        <td>{statistics.most_rated.date}</td>
+                        <td>{new Date(statistics.most_rated.date).toLocaleDateString()}</td>
                         <td>{statistics.most_rated.soup}</td>
                         <td>{statistics.most_rated.lunch1}</td>
                         <td>{statistics.most_rated.lunch2}</td>
@@ -91,22 +103,30 @@ const Statistics = () => {
                 )}
                 {statistics.best_rated && (
                     <tr>
-                        <td>⭐ Nejlépe hodnocený</td>
-                        <td>{statistics.best_rated.date}</td>
+                        <td>🏆 Nejlépe hodnocený</td>
+                        <td>{new Date(statistics.best_rated.date).toLocaleDateString()}</td>
                         <td>{statistics.best_rated.soup}</td>
                         <td>{statistics.best_rated.lunch1}</td>
                         <td>{statistics.best_rated.lunch2}</td>
-                        <td>{statistics.best_rated.avg_rating?.toFixed(2)} ★</td>
+                        <td>
+                            {statistics.best_rated?.avg_rating != null
+                                ? Math.round(statistics.best_rated.avg_rating * 100) / 100
+                                : "None"} ⭐
+                        </td>
                     </tr>
                 )}
                 {statistics.worst_rated && (
                     <tr>
                         <td>💀 Nejhůře hodnocený</td>
-                        <td>{statistics.worst_rated.date}</td>
+                        <td>{new Date(statistics.worst_rated.date).toLocaleDateString()}</td>
                         <td>{statistics.worst_rated.soup}</td>
                         <td>{statistics.worst_rated.lunch1}</td>
                         <td>{statistics.worst_rated.lunch2}</td>
-                        <td>{statistics.worst_rated.avg_rating?.toFixed(2)} ★</td>
+                        <td>
+                            {statistics.worst_rated?.avg_rating != null
+                                ? Math.round(statistics.worst_rated.avg_rating * 100) / 100
+                                : "None"} ⭐
+                        </td>
                     </tr>
                 )}
                 </tbody>
@@ -122,6 +142,14 @@ const Statistics = () => {
                     onChange={(e) => setEmail(e.target.value)}
                 />
                 <button onClick={sendStatisticsEmail}>📧 Odeslat Statistiky</button>
+            </div>
+
+            <div className="admin-button-container">
+                {isAdmin && (
+                    <button onClick={goToLunchRatings} className="admin-button">
+                        🍴 Přejít na stránku hodnocení obědů
+                    </button>
+                )}
             </div>
         </div>
     );

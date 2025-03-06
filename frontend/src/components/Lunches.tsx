@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import Rating from "./Rating"; // Import the Rating component
+import Rating from "./Rating";
 
 interface Lunch {
     lunch_menu_id: number;
@@ -9,6 +9,8 @@ interface Lunch {
     lunch1: string;
     lunch2: string;
     rated: number;
+    ratingCount?: number; // Number of ratings received
+    meanRating?: number; // Average rating for the lunch
 }
 
 const Lunches = () => {
@@ -17,8 +19,10 @@ const Lunches = () => {
     const [error, setError] = useState("");
     const [selectedLunchId, setSelectedLunchId] = useState<number | null>(null);
     const [selectedMeal, setSelectedMeal] = useState<string | null>(null);
+    const [averageRatingCount, setAverageRatingCount] = useState<number | null>(null);
     const userEmail = localStorage.getItem("userEmail");
 
+    // Fetch lunches
     useEffect(() => {
         if (!userEmail) {
             setError("User not logged in");
@@ -36,6 +40,48 @@ const Lunches = () => {
             .catch(() => setError("Failed to load lunches."))
             .finally(() => setLoading(false));
     }, [userEmail]);
+
+    // Fetch ratings once lunches are loaded
+    useEffect(() => {
+        if (lunches.length === 0) return; // Ensure lunches are loaded before fetching ratings
+
+        const fetchRatings = async () => {
+            try {
+                const ratingPromises = lunches.map(async (lunch) => {
+                    try {
+                        const res = await axios.get(`http://localhost:5000/lunch/${lunch.lunch_menu_id}/rating`);
+                        if (res.data.error) {
+                            // If the API returns an error, return null for meanRating
+                            return { lunch_menu_id: lunch.lunch_menu_id, meanRating: null };
+                        }
+                        return { lunch_menu_id: lunch.lunch_menu_id, meanRating: res.data.mean_rating };
+                    } catch {
+                        return { lunch_menu_id: lunch.lunch_menu_id, meanRating: null };
+                    }
+                });
+
+                const ratings = await Promise.all(ratingPromises);
+
+                setLunches((prevLunches) =>
+                    prevLunches.map((lunch) => {
+                        const ratingData = ratings.find((r) => r.lunch_menu_id === lunch.lunch_menu_id);
+                        return { ...lunch, meanRating: ratingData?.meanRating ?? null };
+                    })
+                );
+
+                const validRatings = ratings.filter((r) => r.meanRating !== null);
+                if (validRatings.length > 0) {
+                    const sumRatings = validRatings.reduce((sum, r) => sum + (r.meanRating || 0), 0);
+                    setAverageRatingCount(sumRatings / validRatings.length);
+                }
+            } catch (error) {
+                console.error("Error fetching ratings:", error);
+            }
+        };
+
+
+        fetchRatings();
+    }, [lunches.length]);
 
     const handleLunchClick = (lunchId: number) => {
         if (selectedLunchId === lunchId) {
@@ -57,7 +103,6 @@ const Lunches = () => {
         setSelectedMeal(null);
     };
 
-
     return (
         <div className="container">
             <h1>Your Lunches</h1>
@@ -67,15 +112,37 @@ const Lunches = () => {
 
             <h2>🍽 Unrated Lunches</h2>
             <ul className="lunch-list">
-                {lunches.filter(l => l.rated === 0).map(lunch => (
-                    <li
-                        key={lunch.lunch_menu_id}
-                        className={`lunch-item unrated ${selectedLunchId === lunch.lunch_menu_id ? "selected-lunch" : ""}`}
-                        onClick={() => handleLunchClick(lunch.lunch_menu_id)}
-                    >
-                        🍜 {lunch.soup} | 🍽 {lunch.lunch1} & {lunch.lunch2} - {new Date(lunch.menu_date).toLocaleDateString()}
-                    </li>
-                ))}
+                {lunches.filter(l => l.rated === 0).map(lunch => {
+                    const anomaly =
+                        lunch.meanRating !== undefined && lunch.meanRating !== null &&
+                        averageRatingCount !== null &&
+                        (lunch.meanRating > averageRatingCount * 1.5 || lunch.meanRating < averageRatingCount * 0.5);
+
+                    return (
+                        <li
+                            key={lunch.lunch_menu_id}
+                            className={`lunch-item unrated ${selectedLunchId === lunch.lunch_menu_id ? "selected-lunch" : ""} ${anomaly ? "anomaly" : ""}`}
+                            onClick={() => handleLunchClick(lunch.lunch_menu_id)}
+                        >
+                            <div className="lunch-header">
+                                <span className="lunch-date">{new Date(lunch.menu_date).toLocaleDateString()}</span>
+                                {anomaly && <span className="anomaly-warning">⚠️ Anomaly</span>}
+                            </div>
+                            <div className="lunch-body">
+                                <p className="lunch-soup">🍜 <strong>Soup:</strong> {lunch.soup}</p>
+                                <p className="lunch-main">
+                                    🍽 <strong>Main Course 1:</strong> {lunch.lunch1}
+                                </p>
+                                <p className="lunch-main">
+                                    🍽 <strong>Main Course 2:</strong> {lunch.lunch2}
+                                </p>
+                            </div>
+                            <div className="lunch-footer">
+                                ⭐ <span className="rating">Rating: {lunch.meanRating !== undefined && lunch.meanRating !== null ? lunch.meanRating.toFixed(1) : "0"}</span>
+                            </div>
+                        </li>
+                    );
+                })}
             </ul>
 
             {selectedLunchId && (
@@ -97,20 +164,46 @@ const Lunches = () => {
                 <Rating
                     lunch_id={selectedLunchId}
                     meal={selectedMeal}
-                    onRatingSubmitted={handleRatingSubmitted} // Pass the function
+                    onRatingSubmitted={handleRatingSubmitted}
                 />
             )}
 
             <h2>✅ Rated Lunches</h2>
             <ul className="lunch-list">
-                {lunches.filter(l => l.rated === 1).map(lunch => (
-                    <li key={lunch.lunch_menu_id} className="lunch-item rated">
-                        🍜 {lunch.soup} | 🍽 {lunch.lunch1} & {lunch.lunch2} - {new Date(lunch.menu_date).toLocaleDateString()}
-                    </li>
-                ))}
+                {lunches.filter(l => l.rated === 1).map(lunch => {
+                    const anomaly =
+                        lunch.meanRating !== undefined && lunch.meanRating !== null &&
+                        averageRatingCount !== null &&
+                        (lunch.meanRating > averageRatingCount * 1.5 || lunch.meanRating < averageRatingCount * 0.5);
+
+                    return (
+                        <li
+                            key={lunch.lunch_menu_id}
+                            className={`lunch-item rated ${anomaly ? "anomaly" : ""}`}
+                        >
+                            <div className="lunch-header">
+                                <span className="lunch-date">{new Date(lunch.menu_date).toLocaleDateString()}</span>
+                                {anomaly && <span className="anomaly-warning">⚠️ Anomaly</span>}
+                            </div>
+                            <div className="lunch-body">
+                                <p className="lunch-soup">🍜 <strong>Soup:</strong> {lunch.soup}</p>
+                                <p className="lunch-main">
+                                    🍽 <strong>Main Course 1:</strong> {lunch.lunch1}
+                                </p>
+                                <p className="lunch-main">
+                                    🍽 <strong>Main Course 2:</strong> {lunch.lunch2}
+                                </p>
+                            </div>
+                            <div className="lunch-footer">
+                                ⭐ <span className="rating">Rating: {lunch.meanRating !== undefined && lunch.meanRating !== null ? lunch.meanRating.toFixed(1) : "0"}</span>
+                            </div>
+                        </li>
+                    );
+                })}
             </ul>
         </div>
     );
+
 };
 
 export default Lunches;
