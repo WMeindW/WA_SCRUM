@@ -110,12 +110,12 @@ const Lunches = () => {
 
     return (
         <div className="container">
-            <h1>Your Lunches</h1>
+            <h1>Obědy</h1>
 
             {loading && <p>Loading...</p>}
             {error && <p className="error-message">{error}</p>}
 
-            <h2>🍽 Unrated Lunches</h2>
+            <h2>🍽 Nehodnocené obědy</h2>
             <ul className="lunch-list">
                 {lunches.filter(l => l.rated === 0).map(lunch => {
                     const anomaly =
@@ -134,16 +134,16 @@ const Lunches = () => {
                                 {anomaly && <span className="anomaly-warning">⚠️ Anomaly</span>}
                             </div>
                             <div className="lunch-body">
-                                <p className="lunch-soup">🍜 <strong>Soup:</strong> {lunch.soup}</p>
+                                <p className="lunch-soup">🍜 <strong>Polévka:</strong> {lunch.soup}</p>
                                 <p className="lunch-main">
-                                    🍽 <strong>Main Course 1:</strong> {lunch.lunch1}
+                                    🍽 <strong>Hlavní jídlo 1:</strong> {lunch.lunch1}
                                 </p>
                                 <p className="lunch-main">
-                                    🍽 <strong>Main Course 2:</strong> {lunch.lunch2}
+                                    🍽 <strong>Hlavní jídlo 2:</strong> {lunch.lunch2}
                                 </p>
                             </div>
                             <div className="lunch-footer">
-                                ⭐ <span className="rating">Rating: {lunch.meanRating !== undefined && lunch.meanRating !== null ? lunch.meanRating.toFixed(1) : "No Ratings"}</span>
+                                ⭐ <span className="rating">Hodnocení: {lunch.meanRating !== undefined && lunch.meanRating !== null ? lunch.meanRating.toFixed(1) : "Žádná Hodnocení"}</span>
                             </div>
                         </li>
                     );
@@ -152,9 +152,9 @@ const Lunches = () => {
 
             {selectedLunchId && (
                 <div className="meal-selection">
-                    <h3>Select the meal to rate:</h3>
+                    <h3>Vyber jídlo na ohodnocení:</h3>
                     <select value={selectedMeal || ""} onChange={(e) => setSelectedMeal(e.target.value)}>
-                        <option value="" disabled>Select a meal</option>
+                        <option value="" disabled>Vyber jídlo</option>
                         {lunches.find(l => l.lunch_menu_id === selectedLunchId) && (
                             <>
                                 <option value="lunch1">{lunches.find(l => l.lunch_menu_id === selectedLunchId)?.lunch1}</option>
@@ -173,7 +173,7 @@ const Lunches = () => {
                 />
             )}
 
-            <h2>✅ Rated Lunches</h2>
+            <h2>✅ Ohodnocené obědy</h2>
             <ul className="lunch-list">
                 {lunches.filter(l => l.rated === 1).map(lunch => {
                     const anomaly =
@@ -188,19 +188,18 @@ const Lunches = () => {
                         >
                             <div className="lunch-header">
                                 <span className="lunch-date">{new Date(lunch.menu_date).toLocaleDateString()}</span>
-                                {anomaly && <span className="anomaly-warning">⚠️ Anomaly</span>}
                             </div>
                             <div className="lunch-body">
-                                <p className="lunch-soup">🍜 <strong>Soup:</strong> {lunch.soup}</p>
+                                <p className="lunch-soup">🍜 <strong>Polévka:</strong> {lunch.soup}</p>
                                 <p className="lunch-main">
-                                    🍽 <strong>Main Course 1:</strong> {lunch.lunch1}
+                                    🍽 <strong>Hlavní jídlo 1:</strong> {lunch.lunch1}
                                 </p>
                                 <p className="lunch-main">
-                                    🍽 <strong>Main Course 2:</strong> {lunch.lunch2}
+                                    🍽 <strong>Hlavní jídlo 2:</strong> {lunch.lunch2}
                                 </p>
                             </div>
                             <div className="lunch-footer">
-                                ⭐ <span className="rating">Rating: {lunch.meanRating !== undefined && lunch.meanRating !== null ? lunch.meanRating.toFixed(1) : "No Ratings"}</span>
+                                ⭐ <span className="rating">Hodnocení: {lunch.meanRating !== undefined && lunch.meanRating !== null ? lunch.meanRating.toFixed(1) : "No Ratings"}</span>
                             </div>
                         </li>
                     );
@@ -208,7 +207,7 @@ const Lunches = () => {
             </ul>
 
             <button onClick={handleLogout} className="logout-button">
-                🚪Logout
+                🚪Odhlásit se
             </button>
         </div>
     );

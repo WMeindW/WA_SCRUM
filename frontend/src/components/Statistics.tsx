@@ -116,7 +116,7 @@ const Statistics = () => {
                         <td>
                             {statistics.best_rated?.avg_rating != null
                                 ? Math.round(statistics.best_rated.avg_rating * 100) / 100
-                                : "No Ratings"} ⭐
+                                : "0"}⭐
                         </td>
                     </tr>
                 )}
@@ -130,7 +130,7 @@ const Statistics = () => {
                         <td>
                             {statistics.worst_rated?.avg_rating != null
                                 ? Math.round(statistics.worst_rated.avg_rating * 100) / 100
-                                : "No Ratings"} ⭐
+                                : "0"}⭐
                         </td>
                     </tr>
                 )}
@@ -157,7 +157,7 @@ const Statistics = () => {
                 )}
 
                 <button onClick={handleLogout} className="logout-button">
-                    🚪Logout
+                    🚪Odhlásit se
                 </button>
             </div>
         </div>

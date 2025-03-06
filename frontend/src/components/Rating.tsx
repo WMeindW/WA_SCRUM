@@ -84,7 +84,7 @@ const Rating = ({lunch_id, meal, onRatingSubmitted}: RatingProps) => {
 
     return (
         <div className="rating-form">
-            <h2>🍴 Rate {meal === "lunch1" ? "Meal 1" : "Meal 2"}</h2>
+            <h2>🍴 Ohodnoťte {meal === "lunch1" ? "1. Oběd" : "2. Oběd"}</h2>
             {error && <p className="error-message">{error}</p>}
 
             <form onSubmit={handleSubmit}>
@@ -112,7 +112,7 @@ const Rating = ({lunch_id, meal, onRatingSubmitted}: RatingProps) => {
                     </div>
                 ))}
                 <button type="submit" className="submit-button">
-                    Submit Rating
+                    Odeslat hodnocení
                 </button>
             </form>
         </div>
