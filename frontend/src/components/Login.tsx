@@ -26,7 +26,7 @@ const Login = () => {
                 localStorage.setItem("password", password);
 
                 if (response.data.admin) {
-                    window.location.href = "/admin-statistics"; // Redirect to admin page
+                    window.location.href = "/statistics"; // Redirect to admin page
                 } else {
                     window.location.href = "/lunches"; // Redirect to normal user page
                 }

@@ -61,7 +61,7 @@ const Statistics = () => {
     };
 
     return (
-        <div className="admin-statistics">
+        <div className="statistics">
             <h2>📊 Statistiky</h2>
 
             {error && <p className="error-message">{error}</p>}
