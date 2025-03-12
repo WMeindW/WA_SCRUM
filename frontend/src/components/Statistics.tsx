@@ -39,7 +39,7 @@ const Statistics = () => {
 
     const fetchStatistics = async () => {
         try {
-            const response = await axios.get("/jidelna/lunch/stats");
+            const response = await axios.get("http://localhost:5000/lunch/stats");
             setStatistics(response.data);
         } catch (err) {
             setError("❌ Chyba při načítání statistik.");
@@ -56,7 +56,7 @@ const Statistics = () => {
         }
 
         try {
-            const response = await axios.post("/jidelna/api/statistics", {
+            const response = await axios.post("http://localhost:5000/api/statistics", {
                 email,
                 user,
                 password,

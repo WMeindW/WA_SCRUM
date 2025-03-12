@@ -29,7 +29,7 @@ const Lunches = () => {
             return;
         }
 
-        axios.get(`/jidelna/api/lunches?email=${userEmail}`)
+        axios.get(`http://localhost:5000/api/lunches?email=${userEmail}`)
             .then((res) => {
                 if (Array.isArray(res.data)) {
                     setLunches(res.data);
@@ -42,6 +42,7 @@ const Lunches = () => {
     }, [userEmail]);
 
     // Fetch ratings once lunches are loaded
+    // Fetch ratings once lunches are loaded
     useEffect(() => {
         if (lunches.length === 0) return; // Ensure lunches are loaded before fetching ratings
 
@@ -49,14 +50,17 @@ const Lunches = () => {
             try {
                 const ratingPromises = lunches.map(async (lunch) => {
                     try {
-                        const res = await axios.get(`/jidelna/lunch/${lunch.lunch_menu_id}/rating`);
+                        const res = await axios.get(`http://localhost:5000/lunch/${lunch.lunch_menu_id}/rating`);
                         if (res.data.error) {
-                            // If the API returns an error, return null for meanRating
-                            return { lunch_menu_id: lunch.lunch_menu_id, meanRating: null };
+                            return { lunch_menu_id: lunch.lunch_menu_id, meanRating: null, ratingCount: 0 };
                         }
-                        return { lunch_menu_id: lunch.lunch_menu_id, meanRating: res.data.mean_rating };
+                        return {
+                            lunch_menu_id: lunch.lunch_menu_id,
+                            meanRating: res.data.mean_rating,
+                            ratingCount: res.data.rating_count, // Fetch count from API
+                        };
                     } catch {
-                        return { lunch_menu_id: lunch.lunch_menu_id, meanRating: null };
+                        return { lunch_menu_id: lunch.lunch_menu_id, meanRating: null, ratingCount: 0 };
                     }
                 });
 
@@ -65,7 +69,11 @@ const Lunches = () => {
                 setLunches((prevLunches) =>
                     prevLunches.map((lunch) => {
                         const ratingData = ratings.find((r) => r.lunch_menu_id === lunch.lunch_menu_id);
-                        return { ...lunch, meanRating: ratingData?.meanRating ?? null };
+                        return {
+                            ...lunch,
+                            meanRating: ratingData?.meanRating ?? null,
+                            ratingCount: ratingData?.ratingCount ?? 0
+                        };
                     })
                 );
 
@@ -82,6 +90,7 @@ const Lunches = () => {
 
         fetchRatings();
     }, [lunches.length]);
+
 
     const handleLunchClick = (lunchId: number) => {
         if (selectedLunchId === lunchId) {
@@ -142,8 +151,12 @@ const Lunches = () => {
                                     🍽 <strong>Hlavní jídlo 2:</strong> {lunch.lunch2}
                                 </p>
                             </div>
-                            <div className="lunch-footer">
-                                ⭐ <span className="rating">Hodnocení: {lunch.meanRating !== undefined && lunch.meanRating !== null ? lunch.meanRating.toFixed(1) : "Žádná Hodnocení"}</span>
+                            <div className="lunch-footer">⭐
+                                <span className="rating">
+                                    Rating: {lunch.meanRating !== undefined && lunch.meanRating !== null
+                                    ? `${lunch.meanRating.toFixed(1)} / ${lunch.ratingCount} ratings`
+                                    : "No Ratings"}
+                                </span>
                             </div>
                         </li>
                     );
@@ -198,9 +211,14 @@ const Lunches = () => {
                                     🍽 <strong>Hlavní jídlo 2:</strong> {lunch.lunch2}
                                 </p>
                             </div>
-                            <div className="lunch-footer">
-                                ⭐ <span className="rating">Hodnocení: {lunch.meanRating !== undefined && lunch.meanRating !== null ? lunch.meanRating.toFixed(1) : "No Ratings"}</span>
+                            <div className="lunch-footer">⭐
+                                <span className="rating">
+                                    Rating: {lunch.meanRating !== undefined && lunch.meanRating !== null
+                                    ? `${lunch.meanRating.toFixed(1)} / ${lunch.ratingCount} ratings`
+                                    : "No Ratings"}
+                                </span>
                             </div>
+
                         </li>
                     );
                 })}
