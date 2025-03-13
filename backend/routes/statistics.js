@@ -71,12 +71,22 @@ function defineAPIStatisticsEndpoint(app) {
 
     app.get("/lunch/stats", async (req, res) => {
         try {
-            const stats = await generateStatistics();
+            // Získání parametrů pro data
+            const { from_date, to_date } = req.query;
+
+            // Pokud nejsou data poskytnuta, nastavíme výchozí hodnoty (např. celý rok)
+            if (!from_date || !to_date) {
+                return res.status(400).json({ error: "Musí být zadána data (from_date, to_date)" });
+            }
+
+            // Volání funkce pro získání statistik v rámci daného intervalu
+            const stats = await generateStatistics(from_date, to_date);
             res.json(stats);
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     });
+
     app.get("/api/questions/mean-ratings", async (req, res) => {
         const { lunch_id } = req.query;
 
@@ -123,7 +133,7 @@ async function getMeanRatingsByQuestion(lunch_id) {
 
 
 
-async function generateStatistics() {
+async function generateStatistics(from_date, to_date) {
     try {
         // 📌 1️⃣ Nejvíce hodnocený oběd
         const [mostRated] = await pool.query(
@@ -138,8 +148,9 @@ async function generateStatistics() {
                       JOIN lunches l1 ON lm.main_course_1_id = l1.id
                       JOIN lunches l2 ON lm.main_course_2_id = l2.id
                       LEFT JOIN user_lunch_ratings ulr ON lm.id = ulr.lunch_menu_id
+             WHERE lm.date BETWEEN ? AND ?
              GROUP BY lm.id
-             ORDER BY total_ratings DESC LIMIT 1`
+             ORDER BY total_ratings DESC LIMIT 1`, [from_date, to_date]
         );
 
         // 📌 2️⃣ Nejlépe hodnocený oběd
@@ -155,8 +166,9 @@ async function generateStatistics() {
                       JOIN lunches l1 ON lm.main_course_1_id = l1.id
                       JOIN lunches l2 ON lm.main_course_2_id = l2.id
                       LEFT JOIN user_lunch_ratings ulr ON lm.id = ulr.lunch_menu_id
+             WHERE lm.date BETWEEN ? AND ?
              GROUP BY lm.id
-             ORDER BY avg_rating DESC LIMIT 1`
+             ORDER BY avg_rating DESC LIMIT 1`, [from_date, to_date]
         );
 
         // 📌 3️⃣ Nejhůře hodnocený oběd
@@ -172,13 +184,18 @@ async function generateStatistics() {
                       JOIN lunches l1 ON lm.main_course_1_id = l1.id
                       JOIN lunches l2 ON lm.main_course_2_id = l2.id
                       LEFT JOIN user_lunch_ratings ulr ON lm.id = ulr.lunch_menu_id
+             WHERE lm.date BETWEEN ? AND ?
              GROUP BY lm.id
-             ORDER BY avg_rating ASC LIMIT 1`
+             ORDER BY avg_rating ASC LIMIT 1`, [from_date, to_date]
         );
 
         // 📌 4️⃣ Celkový počet hodnocení
-        const [totalVotes] = await pool.query(`SELECT COUNT(*) AS total_votes
-                                               FROM user_lunch_ratings`);
+        const [totalVotes] = await pool.query(
+            `SELECT COUNT(*) AS total_votes
+             FROM user_lunch_ratings ulr
+                      JOIN lunch_menus lm ON ulr.lunch_menu_id = lm.id
+             WHERE lm.date BETWEEN ? AND ?`, [from_date, to_date]
+        );
 
         return {
             most_rated: mostRated[0] || null,
@@ -191,6 +208,7 @@ async function generateStatistics() {
         throw new Error("Chyba serveru");
     }
 }
+
 
 const removeDiacritics = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
