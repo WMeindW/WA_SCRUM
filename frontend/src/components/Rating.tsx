@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 interface Question {
@@ -13,9 +13,10 @@ interface RatingProps {
     onRatingSubmitted?: (lunchId: number) => void;
 }
 
-const Rating = ({lunch_id, meal, onRatingSubmitted}: RatingProps) => {
+const Rating = ({ lunch_id, meal, onRatingSubmitted }: RatingProps) => {
     const [questions, setQuestions] = useState<Question[]>([]);
     const [responses, setResponses] = useState<Record<number, number>>({});
+    const [meanRatings, setMeanRatings] = useState<Record<number, number>>({});
     const [error, setError] = useState("");
 
     const userEmail = localStorage.getItem("userEmail");
@@ -27,6 +28,12 @@ const Rating = ({lunch_id, meal, onRatingSubmitted}: RatingProps) => {
             return;
         }
 
+        // Load saved responses from localStorage if available
+        const savedResponses = localStorage.getItem(`rating_${lunch_id}`);
+        if (savedResponses) {
+            setResponses(JSON.parse(savedResponses));
+        }
+
         axios.get("http://localhost:5000/api/questions")
             .then((res) => {
                 setQuestions(res.data);
@@ -35,13 +42,28 @@ const Rating = ({lunch_id, meal, onRatingSubmitted}: RatingProps) => {
                 res.data.forEach((q: Question) => {
                     defaultResponses[q.id] = Math.floor(q.options.length / 2) + 1;
                 });
-                setResponses(defaultResponses);
+
+                // If no saved responses, set defaults
+                if (!savedResponses) {
+                    setResponses(defaultResponses);
+                }
             })
             .catch(() => setError("Failed to load questions."));
+
+        // Fetch mean ratings for each question
+        axios.get(`http://localhost:5000/api/questions/mean-ratings?lunch_id=${lunch_id}`)
+            .then((res) => {
+                setMeanRatings(res.data);
+            })
+            .catch(() => console.error("Failed to fetch mean ratings."));
     }, [lunch_id, userEmail]);
 
     const handleChange = (id: number, value: number) => {
-        setResponses((prev) => ({...prev, [id]: value}));
+        const updatedResponses = { ...responses, [id]: value };
+        setResponses(updatedResponses);
+
+        // Save to local storage
+        localStorage.setItem(`rating_${lunch_id}`, JSON.stringify(updatedResponses));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -59,20 +81,18 @@ const Rating = ({lunch_id, meal, onRatingSubmitted}: RatingProps) => {
         }
 
         try {
-            // Ensure all responses start from 1 (shift indexes +1)
-            const adjustedResponses = Object.fromEntries(
-                Object.entries(responses).map(([key, value]) => [key, value])
-            );
-
             await axios.post("http://localhost:5000/api/rate", {
                 email: userEmail,
                 password: password,
                 lunch_id,
                 meal,
-                responses: adjustedResponses, // Store adjusted values
+                responses,
             });
 
             alert("Rating submitted successfully!");
+
+            // Remove saved responses from localStorage after submission
+            localStorage.removeItem(`rating_${lunch_id}`);
 
             if (onRatingSubmitted) {
                 onRatingSubmitted(lunch_id);
@@ -84,7 +104,7 @@ const Rating = ({lunch_id, meal, onRatingSubmitted}: RatingProps) => {
 
     return (
         <div className="rating-form">
-            <h2>🍴 Rate {meal === "lunch1" ? "Meal 1" : "Meal 2"}</h2>
+            <h2>🍴 Ohodnoťte {meal === "lunch1" ? "1. Oběd" : "2. Oběd"}</h2>
             {error && <p className="error-message">{error}</p>}
 
             <form onSubmit={handleSubmit}>
@@ -93,7 +113,7 @@ const Rating = ({lunch_id, meal, onRatingSubmitted}: RatingProps) => {
                         <p>{q.text}</p>
                         <input
                             type="range"
-                            min="1" // Shifted from 0 → 1
+                            min="1"
                             max={q.options.length}
                             step="1"
                             value={responses[q.id] ?? Math.floor(q.options.length / 2) + 1}
@@ -109,10 +129,11 @@ const Rating = ({lunch_id, meal, onRatingSubmitted}: RatingProps) => {
                                 </span>
                             ))}
                         </div>
+                        <p className="mean-rating">📊 Průměrné hodnocení: {meanRatings[q.id] ?? "N/A"}</p>
                     </div>
                 ))}
                 <button type="submit" className="submit-button">
-                    Submit Rating
+                    Odeslat hodnocení
                 </button>
             </form>
         </div>

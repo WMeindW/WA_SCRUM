@@ -46,6 +46,29 @@ function defineAPIStatisticsEndpoint(app) {
         }
     });
 
+    /* vrací počet hodnocení pro každý oběd
+    * app.get("/lunch/:id/rating", async (req, res) => {
+    const lunchMenuId = req.params.id;
+
+    try {
+        const [rows] = await pool.query(
+            "SELECT AVG(rating) AS mean_rating, COUNT(rating) AS rating_count FROM user_lunch_ratings WHERE lunch_menu_id = ?",
+            [lunchMenuId]
+        );
+
+        res.json({
+            lunch_menu_id: lunchMenuId,
+            mean_rating: rows[0].mean_rating ? parseFloat(rows[0].mean_rating) : null,
+            rating_count: rows[0].rating_count || 0, // Default to 0 if no ratings exist
+        });
+    } catch (error) {
+        console.error("❌ Error fetching rating:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+    * */
+
     app.get("/lunch/stats", async (req, res) => {
         try {
             const stats = await generateStatistics();
