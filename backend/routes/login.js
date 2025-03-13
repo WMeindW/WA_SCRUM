@@ -1,37 +1,59 @@
-const bcrypt = require("bcrypt");
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const { pool } = require("../db_conn");
+const cookieParser = require('cookie-parser');
 
 const ENDPOINT = "https://strav.nasejidelna.cz";
 const CANTEEN_CODE = "0341";
+const JWT_SECRET = "tajny_klic";
+const JWT_EXPIRATION = "2d";
+
 let cookies = new Map();
-let autoLoginAttempted = false;
 let lastSuccessfulLoginAuth = null;
 let lastSuccessfulLoginTime = null;
 
 function defineAPILoginEndpoints(app) {
+    app.use(cookieParser());
 
     app.post('/api/login', async (req, res) => {
         const { email, password } = req.body;
 
         try {
+            const token = req.cookies['auth_token'];
+            console.log(token)
+            if (token) {
+                try {
+                    const decoded = jwt.verify(token, JWT_SECRET);
+                    console.log('prihlaseni prez token');
+                    return res.status(200).json({ message: 'Login successful', admin: decoded.admin });
+                } catch (error) {
+                    console.log('Neplatný token, pokračuji v přihlášení přes jídelnu');
+                }
+            }else{
+                console.log('Pokračuji v přihlášení přes jídelnu');
+            }
+
             const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
-            const admin = rows[0].is_admin
+            const admin = rows.length > 0 ? rows[0].is_admin : false;
 
             if (rows.length === 0) {
                 const saltRounds = 10;
                 const hashedPassword = await bcrypt.hash(password, saltRounds);
-
                 await pool.query("INSERT INTO users (email, password_hash, last_rating_date) VALUES (?, ?, CURDATE())", [email, hashedPassword]);
                 console.log("New user registered:", email);
             }
+
             const isSuccess = await login({ username: email, password });
             if (isSuccess) {
-                res.status(200).json({ message: 'Login successful' , admin : admin});
+                const newToken = jwt.sign({ email, admin }, JWT_SECRET, { expiresIn: JWT_EXPIRATION });
+                res.cookie('auth_token', newToken, { httpOnly: true, secure: false, maxAge: 1000 * 60 * 60 * 24 * 2});
+                return res.status(200).json({ message: 'Login successful', admin });
             } else {
-                res.status(401).json({ message: 'Invalid credentials' });
+                return res.status(401).json({ message: 'Invalid credentials' });
             }
         } catch (error) {
-            res.status(500).json({ message: 'Error during login', error: error.message });
+            console.error('Chyba při přihlášení:', error);
+            return res.status(500).json({ message: 'Error during login', error: error.message });
         }
     });
 }
@@ -54,18 +76,22 @@ async function login(auth) {
         options.headers = { ...options.headers, Cookie: cookieHeader };
         options.redirect = "manual";
 
-        const response = await fetch(url, options);
+        try {
+            const response = await fetch(url, options);
 
-        // Získání cookies z odpovědi
-        const setCookieHeader = response.headers.get('set-cookie');
-        if (setCookieHeader) {
-            const cookiesArray = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
-            cookiesArray.forEach(cookie => {
-                const [name, value] = cookie.split(';')[0].split('=');
-                cookies.set(name, value); // Uložení cookies
-            });
+            const setCookieHeader = response.headers.get('set-cookie');
+            if (setCookieHeader) {
+                const cookiesArray = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
+                cookiesArray.forEach(cookie => {
+                    const [name, value] = cookie.split(';')[0].split('=');
+                    cookies.set(name, value);
+                });
+            }
+            return response;
+        } catch (error) {
+            console.error('Chyba při volání fetch:', error);
+            throw error;
         }
-        return response;
     }
 
     const loginPageResponse = await fetchWithCookies(`${ENDPOINT}/${CANTEEN_CODE}/login`);
@@ -80,7 +106,7 @@ async function login(auth) {
             body: new URLSearchParams({
                 j_username: auth.username,
                 j_password: auth.password,
-                _spring_security_remember_me: "on", // Zapnutí možnosti "zapamatovat si mě"
+                _spring_security_remember_me: "on",
                 type: "web",
                 _csrf: csrfToken,
                 targetUrl: "/"

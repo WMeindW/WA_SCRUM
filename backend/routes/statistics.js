@@ -1,14 +1,14 @@
 const nodemailer = require('nodemailer');
-const fs = require('fs'); // Používáme normální fs pro zapisování souborů
+const fs = require('fs');
 const PDFDocument = require('pdfkit');
 const { login } = require('./login');
 const { pool } = require("../db_conn");
 
 function defineAPIStatisticsEndpoint(app) {
     app.post('/api/statistics', async (req, res) => {
-        const { email, user, password } = req.body;
+        const { email, user, password ,from} = req.body;
 
-        if (!email || !user || !password) {
+        if (!email || !user || !password || !from) {
             return res.status(400).json({ error: 'Chybí povinné údaje' });
         }
 
@@ -16,7 +16,7 @@ function defineAPIStatisticsEndpoint(app) {
             return res.status(400).json({ error: 'Uzivatel neni autorizovany' });
         }
 
-        const statisticsFile = await generateStatisticsFile();
+        const statisticsFile = await generateStatisticsFile(from);
         if (!statisticsFile) {
             return res.status(500).json({ error: 'Nepodařilo se vygenerovat soubor se statistikami' });
         }
@@ -158,19 +158,19 @@ const formatDate = (dateString) => {
     return `${day}. ${month}. ${year}`;
 };
 
-async function generateStatisticsFile() {
-    const data = await generateStatistics();
+async function generateStatisticsFile(from) {
+    const to = new Date();
+    to.setDate(to.getDate() + 7);
+    const data = await generateStatistics(from,to);
     const filePath = 'data/statistics.pdf';
 
     const doc = new PDFDocument({ margin: 50 });
 
     doc.pipe(fs.createWriteStream(filePath));
 
-    // Titulek dokumentu
     doc.fontSize(20).text(removeDiacritics("Statistiky hodnoceni jidel"), { align: "center" });
     doc.moveDown(2);
 
-    // Nejčastěji hodnocené jídlo
     doc.fontSize(16).text(removeDiacritics("Nejcasteji hodnocene jidlo"), { underline: true });
     doc.moveDown();
     doc.fontSize(12).text(`Datum: ${formatDate(data.most_rated.date)}`);
