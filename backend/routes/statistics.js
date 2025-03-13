@@ -77,7 +77,51 @@ function defineAPIStatisticsEndpoint(app) {
             res.status(500).json({ error: error.message });
         }
     });
+    app.get("/api/questions/mean-ratings", async (req, res) => {
+        const { lunch_id } = req.query;
+
+        if (!lunch_id) {
+            return res.status(400).json({ error: "Chybí parametr lunch_id" });
+        }
+
+        try {
+            const meanRatings = await getMeanRatingsByQuestion(lunch_id);
+            res.json(meanRatings);
+        } catch (error) {
+            console.error("❌ Chyba serveru při získávání průměrného hodnocení:", error);
+            res.status(500).json({ error: "Chyba serveru" });
+        }
+    });
 }
+
+async function getMeanRatingsByQuestion(lunch_id) {
+    try {
+        const [meanRatings] = await pool.query(
+            `SELECT q.id AS question_id, 
+                    q.text AS question_text,
+                    AVG(ulr.rating) AS avg_rating
+             FROM user_lunch_ratings ulr
+             JOIN questions q ON ulr.question_id = q.id
+             WHERE ulr.lunch_menu_id = ?
+             GROUP BY ulr.question_id, q.text`,
+            [lunch_id]
+        );
+
+        // Převod na požadovaný formát { question_id: avg_rating }
+        const ratingsByQuestion = {};
+        meanRatings.forEach(({ id, avg_rating }) => {
+            ratingsByQuestion[id] = avg_rating;
+        });
+
+        return ratingsByQuestion;
+    } catch (error) {
+        console.error("❌ Chyba při získávání průměrných hodnocení podle otázky:", error);
+        throw new Error("Chyba serveru");
+    }
+}
+
+
+
 
 async function generateStatistics() {
     try {
