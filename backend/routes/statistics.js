@@ -77,29 +77,72 @@ function defineAPIStatisticsEndpoint(app) {
             res.status(500).json({ error: error.message });
         }
     });
+    app.get("/api/questions/mean-ratings", async (req, res) => {
+        const { lunch_id } = req.query;
+
+        if (!lunch_id) {
+            return res.status(400).json({ error: "Chybí parametr lunch_id" });
+        }
+
+        try {
+            const meanRatings = await getMeanRatingsByQuestion(lunch_id);
+            res.json(meanRatings);
+        } catch (error) {
+            console.error("❌ Chyba serveru při získávání průměrného hodnocení:", error);
+            res.status(500).json({ error: "Chyba serveru" });
+        }
+    });
 }
 
-const generateLunchStats = async () => {
+async function getMeanRatingsByQuestion(lunch_id) {
     try {
-        // Get the most rated lunch
+        const [meanRatings] = await pool.query(
+            `SELECT q.id AS question_id, 
+                    q.text AS question_text,
+                    AVG(ulr.rating) AS avg_rating
+             FROM user_lunch_ratings ulr
+             JOIN questions q ON ulr.question_id = q.id
+             WHERE ulr.lunch_menu_id = ?
+             GROUP BY ulr.question_id, q.text`,
+            [lunch_id]
+        );
+
+        // Převod na požadovaný formát { question_id: avg_rating }
+        const ratingsByQuestion = {};
+        meanRatings.forEach(({ id, avg_rating }) => {
+            ratingsByQuestion[id] = avg_rating;
+        });
+
+        return ratingsByQuestion;
+    } catch (error) {
+        console.error("❌ Chyba při získávání průměrných hodnocení podle otázky:", error);
+        throw new Error("Chyba serveru");
+    }
+}
+
+
+
+
+async function generateStatistics() {
+    try {
+        // 📌 1️⃣ Nejvíce hodnocený oběd
         const [mostRated] = await pool.query(
             `SELECT lm.id,
                     lm.date,
                     s.name AS soup,
                     l1.name AS lunch1,
                     l2.name AS lunch2,
-                    COUNT(ulr.lunch_menu_id) AS total_ratings
+                    COUNT(ulr.rating) AS total_ratings
              FROM lunch_menus lm
-             JOIN soups s ON lm.soup_id = s.id
-             JOIN lunches l1 ON lm.main_course_1_id = l1.id
-             JOIN lunches l2 ON lm.main_course_2_id = l2.id
-             LEFT JOIN user_lunch_ratings ulr ON lm.id = ulr.lunch_menu_id
+                      JOIN soups s ON lm.soup_id = s.id
+                      JOIN lunches l1 ON lm.main_course_1_id = l1.id
+                      JOIN lunches l2 ON lm.main_course_2_id = l2.id
+                      LEFT JOIN user_lunch_ratings ulr ON lm.id = ulr.lunch_menu_id
              GROUP BY lm.id
-             ORDER BY total_ratings DESC
-             LIMIT 1`
+             ORDER BY total_ratings DESC LIMIT 1`
         );
 
-        // Get best-rated lunch
+        // 📌 2️⃣ Nejlépe hodnocený oběd
         const [bestRated] = await pool.query(
             `SELECT lm.id,
                     lm.date,
@@ -108,61 +151,46 @@ const generateLunchStats = async () => {
                     l2.name AS lunch2,
                     ROUND(AVG(ulr.rating), 2) AS avg_rating
              FROM lunch_menus lm
-                  JOIN soups s ON lm.soup_id = s.id
-                  JOIN lunches l1 ON lm.main_course_1_id = l1.id
-                  JOIN lunches l2 ON lm.main_course_2_id = l2.id
-                  LEFT JOIN user_lunch_ratings ulr ON lm.id = ulr.lunch_menu_id
+                      JOIN soups s ON lm.soup_id = s.id
+                      JOIN lunches l1 ON lm.main_course_1_id = l1.id
+                      JOIN lunches l2 ON lm.main_course_2_id = l2.id
+                      LEFT JOIN user_lunch_ratings ulr ON lm.id = ulr.lunch_menu_id
              GROUP BY lm.id
-             ORDER BY avg_rating DESC
-             LIMIT 1`
+             ORDER BY avg_rating DESC LIMIT 1`
         );
 
-        // Get worst-rated lunch
+        // 📌 3️⃣ Nejhůře hodnocený oběd
         const [worstRated] = await pool.query(
             `SELECT lm.id,
                     lm.date,
                     s.name AS soup,
                     l1.name AS lunch1,
                     l2.name AS lunch2,
-                    ROUND(AVG(ulr.rating), 2) AS avg_rating
+                    AVG(ulr.rating) AS avg_rating
              FROM lunch_menus lm
-                  JOIN soups s ON lm.soup_id = s.id
-                  JOIN lunches l1 ON lm.main_course_1_id = l1.id
-                  JOIN lunches l2 ON lm.main_course_2_id = l2.id
-                  LEFT JOIN user_lunch_ratings ulr ON lm.id = ulr.lunch_menu_id
+                      JOIN soups s ON lm.soup_id = s.id
+                      JOIN lunches l1 ON lm.main_course_1_id = l1.id
+                      JOIN lunches l2 ON lm.main_course_2_id = l2.id
+                      LEFT JOIN user_lunch_ratings ulr ON lm.id = ulr.lunch_menu_id
              GROUP BY lm.id
-             ORDER BY avg_rating ASC
-             LIMIT 1`
+             ORDER BY avg_rating ASC LIMIT 1`
         );
 
-        // Get total votes count
-        const [totalVotes] = await pool.query(`SELECT COUNT(*) AS total_votes FROM user_lunch_ratings`);
-
-        // Get average rating for each question
-        const [meanRatingsRows] = await pool.query(
-            `SELECT question_id, AVG(rating) AS avg_rating
-             FROM user_lunch_ratings
-             GROUP BY question_id`
-        );
-
-        const meanRatings = {};
-        for (const row of meanRatings) {
-            meanRatings[row.question_id] = parseFloat(row.avg_rating.toFixed(2));
-        }
+        // 📌 4️⃣ Celkový počet hodnocení
+        const [totalVotes] = await pool.query(`SELECT COUNT(*) AS total_votes
+                                               FROM user_lunch_ratings`);
 
         return {
             most_rated: mostRated[0] || null,
             best_rated: bestRated[0] || null,
             worst_rated: worstRated[0] || null,
             total_votes: totalVotes[0]?.total_votes || 0,
-            mean_ratings: meanRatings, // Adjusted format for frontend
         };
     } catch (error) {
-        console.error("❌ Error fetching statistics:", error);
-        throw new Error("Failed to fetch lunch statistics.");
+        console.error("❌ Chyba při získávání statistik:", error);
+        throw new Error("Chyba serveru");
     }
-};
-
+}
 
 const removeDiacritics = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
