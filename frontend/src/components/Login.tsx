@@ -19,6 +19,8 @@ const Login = () => {
             const response = await axios.post("http://localhost:5000/api/login", {
                 email,
                 password,
+            }, {
+                withCredentials: true
             });
 
             if (response.status === 200) {
