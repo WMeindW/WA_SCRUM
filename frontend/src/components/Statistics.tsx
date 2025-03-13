@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // Import to navigate to another page
+import { useNavigate } from "react-router-dom";
 
 interface Statistic {
     id: number;
@@ -18,20 +18,25 @@ const Statistics = () => {
         best_rated: Statistic | null;
         worst_rated: Statistic | null;
         total_votes: number;
-    }>( {
+    }>({
         most_rated: null,
         best_rated: null,
         worst_rated: null,
         total_votes: 0,
     });
+
     const [email, setEmail] = useState("");
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+    const [selectedWeek, setSelectedWeek] = useState(1);
+
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
     const user = localStorage.getItem("userEmail");
     const password = localStorage.getItem("password");
-    const isAdmin = localStorage.getItem("isAdmin") === "true"; // Get the admin status from localStorage
-    const navigate = useNavigate(); // Initialize navigate for navigation
+    const isAdmin = localStorage.getItem("isAdmin") === "true";
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchStatistics();
@@ -50,8 +55,8 @@ const Statistics = () => {
         setMessage("");
         setError("");
 
-        if (!email || !user || !password) {
-            setError("❌ Zadejte platný email a přihlaste se.");
+        if (!email || !user || !password || !selectedYear || !selectedMonth || !selectedWeek) {
+            setError("❌ Vyplňte všechny údaje.");
             return;
         }
 
@@ -60,6 +65,9 @@ const Statistics = () => {
                 email,
                 user,
                 password,
+                year: selectedYear,
+                month: selectedMonth,
+                week: selectedWeek,
             });
 
             setMessage(response.data.message);
@@ -69,12 +77,12 @@ const Statistics = () => {
     };
 
     const goToLunchRatings = () => {
-        navigate("/lunches"); // Navigate to the lunch ratings page
+        navigate("/lunches");
     };
 
     const handleLogout = () => {
-        localStorage.clear(); // Removes all stored user data
-        window.location.href = "/"; // Redirects to the login page
+        localStorage.clear();
+        window.location.href = "/";
     };
 
     return (
@@ -146,6 +154,34 @@ const Statistics = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                 />
+
+                {/* Dropdown for Year Selection */}
+                <select value={selectedYear} onChange={(e) => setSelectedYear(parseInt(e.target.value))}>
+                    {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                        <option key={year} value={year}>
+                            {year}
+                        </option>
+                    ))}
+                </select>
+
+                {/* Dropdown for Month Selection */}
+                <select value={selectedMonth} onChange={(e) => setSelectedMonth(parseInt(e.target.value))}>
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                        <option key={month} value={month}>
+                            {month}
+                        </option>
+                    ))}
+                </select>
+
+                {/* Dropdown for Week Selection */}
+                <select value={selectedWeek} onChange={(e) => setSelectedWeek(parseInt(e.target.value))}>
+                    {Array.from({ length: 4 }, (_, i) => i + 1).map((week) => (
+                        <option key={week} value={week}>
+                            {week}
+                        </option>
+                    ))}
+                </select>
+
                 <button onClick={sendStatisticsEmail}>📧 Odeslat Statistiky</button>
             </div>
 
