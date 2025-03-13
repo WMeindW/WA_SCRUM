@@ -26,9 +26,7 @@ const Statistics = () => {
     });
 
     const [email, setEmail] = useState("");
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-    const [selectedWeek, setSelectedWeek] = useState(1);
+    const [fromDate, setFromDate] = useState("");
 
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
@@ -55,7 +53,7 @@ const Statistics = () => {
         setMessage("");
         setError("");
 
-        if (!email || !user || !password || !selectedYear || !selectedMonth || !selectedWeek) {
+        if (!email || !user || !password || !fromDate) {
             setError("❌ Vyplňte všechny údaje.");
             return;
         }
@@ -65,9 +63,7 @@ const Statistics = () => {
                 email,
                 user,
                 password,
-                year: selectedYear,
-                month: selectedMonth,
-                week: selectedWeek,
+                from: fromDate, // Send the selected date
             });
 
             setMessage(response.data.message);
@@ -75,6 +71,7 @@ const Statistics = () => {
             setError("❌ Chyba při odesílání statistik.");
         }
     };
+
 
     const goToLunchRatings = () => {
         navigate("/lunches");
@@ -155,32 +152,11 @@ const Statistics = () => {
                     onChange={(e) => setEmail(e.target.value)}
                 />
 
-                {/* Dropdown for Year Selection */}
-                <select value={selectedYear} onChange={(e) => setSelectedYear(parseInt(e.target.value))}>
-                    {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((year) => (
-                        <option key={year} value={year}>
-                            {year}
-                        </option>
-                    ))}
-                </select>
-
-                {/* Dropdown for Month Selection */}
-                <select value={selectedMonth} onChange={(e) => setSelectedMonth(parseInt(e.target.value))}>
-                    {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
-                        <option key={month} value={month}>
-                            {month}
-                        </option>
-                    ))}
-                </select>
-
-                {/* Dropdown for Week Selection */}
-                <select value={selectedWeek} onChange={(e) => setSelectedWeek(parseInt(e.target.value))}>
-                    {Array.from({ length: 4 }, (_, i) => i + 1).map((week) => (
-                        <option key={week} value={week}>
-                            {week}
-                        </option>
-                    ))}
-                </select>
+                <input
+                    type="date"
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                />
 
                 <button onClick={sendStatisticsEmail}>📧 Odeslat Statistiky</button>
             </div>
