@@ -125,28 +125,67 @@ async function generateStatistics() {
     }
 }
 
+const removeDiacritics = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Měsíce jsou indexovány od 0
+    const year = date.getFullYear();
+    return `${day}. ${month}. ${year}`;
+};
+
 async function generateStatisticsFile() {
     const data = await generateStatistics();
-    const filePath = 'data/statistics.pdf'; // Změněno na .pdf
+    const filePath = 'data/statistics.pdf';
 
-    const doc = new PDFDocument();
+    const doc = new PDFDocument({ margin: 50 });
 
-    doc.pipe(fs.createWriteStream(filePath)); // Používáme fs.createWriteStream přímo
+    doc.pipe(fs.createWriteStream(filePath));
 
-    // Vložení dat do PDF
-    doc.fontSize(12).text("Kategorie;ID;Datum;Polévka;Hlavní jídlo 1;Hlavní jídlo 2;Hodnocení / Počet hlasů");
+    // Titulek dokumentu
+    doc.fontSize(20).text(removeDiacritics("Statistiky hodnoceni jidel"), { align: "center" });
+    doc.moveDown(2);
 
-    doc.text(`Nejčastěji hodnocené;${data.most_rated.id};${data.most_rated.date};${data.most_rated.soup};${data.most_rated.lunch1};${data.most_rated.lunch2};${data.most_rated.total_ratings}`);
-    doc.text(`Nejlépe hodnocené;${data.best_rated.id};${data.best_rated.date};${data.best_rated.soup};${data.best_rated.lunch1};${data.best_rated.lunch2};${data.best_rated.avg_rating}`);
-    doc.text(`Nejhůře hodnocené;${data.worst_rated.id};${data.worst_rated.date};${data.worst_rated.soup};${data.worst_rated.lunch1};${data.worst_rated.lunch2};${data.worst_rated.avg_rating || "N/A"}`);
-    doc.text(`Celkový počet hlasů;;;${data.total_votes}`);
+    // Nejčastěji hodnocené jídlo
+    doc.fontSize(16).text(removeDiacritics("Nejcasteji hodnocene jidlo"), { underline: true });
+    doc.moveDown();
+    doc.fontSize(12).text(`Datum: ${formatDate(data.most_rated.date)}`);
+    doc.text(`Polevka: ${removeDiacritics(data.most_rated.soup)}`);
+    doc.text(`Hlavni jidlo 1: ${removeDiacritics(data.most_rated.lunch1)}`);
+    doc.text(`Hlavni jidlo 2: ${removeDiacritics(data.most_rated.lunch2)}`);
+    doc.text(`Celkovy pocet hodnoceni: ${data.most_rated.total_ratings}`);
+    doc.moveDown(2);
+
+    // Nejlépe hodnocené jídlo
+    doc.fontSize(16).text(removeDiacritics("Nejlepe hodnocene jidlo"), { underline: true });
+    doc.moveDown();
+    doc.fontSize(12).text(`Datum: ${formatDate(data.best_rated.date)}`);
+    doc.text(`Polevka: ${removeDiacritics(data.best_rated.soup)}`);
+    doc.text(`Hlavni jidlo 1: ${removeDiacritics(data.best_rated.lunch1)}`);
+    doc.text(`Hlavni jidlo 2: ${removeDiacritics(data.best_rated.lunch2)}`);
+    doc.text(`Prumerne hodnoceni: ${data.best_rated.avg_rating}`);
+    doc.moveDown(2);
+
+    // Nejhůře hodnocené jídlo
+    doc.fontSize(16).text(removeDiacritics("Nejhure hodnocene jidlo"), { underline: true });
+    doc.moveDown();
+    doc.fontSize(12).text(`Datum: ${formatDate(data.worst_rated.date)}`);
+    doc.text(`Polevka: ${removeDiacritics(data.worst_rated.soup)}`);
+    doc.text(`Hlavni jidlo 1: ${removeDiacritics(data.worst_rated.lunch1)}`);
+    doc.text(`Hlavni jidlo 2: ${removeDiacritics(data.worst_rated.lunch2)}`);
+    doc.text(`Prumerne hodnoceni: ${data.worst_rated.avg_rating || "N/A"}`);
+    doc.moveDown(2);
+
+    // Celkový počet hlasů
+    doc.fontSize(14).text(removeDiacritics(`Celkovy pocet hlasu: ${data.total_votes}`), { align: "center" });
 
     doc.end();
 
     try {
         return filePath;
     } catch (error) {
-        console.error('Chyba při generování souboru:', error);
+        console.error('Chyba pri generovani souboru:', error);
         return null;
     }
 }
