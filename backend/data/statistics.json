@@ -1,0 +1,27 @@
+{
+  "most_rated": {
+    "id": 2,
+    "date": "2025-02-26T23:00:00.000Z",
+    "soup": "Česnekový krém s krutóny",
+    "lunch1": "Pečená treska na másle,  šťouchané brambory s cibulkou,  bylinková omáčka,  voda se sirupem a limetkou",
+    "lunch2": "Brokolice zapékaná s variací sýrů,  brambory,  mléko",
+    "total_ratings": 105
+  },
+  "best_rated": {
+    "id": 3,
+    "date": "2025-02-27T23:00:00.000Z",
+    "soup": "Polévka kmínová s vejcem",
+    "lunch1": "Kuřecí maso na houbách,  rýže,  makovec,  instantní čaj",
+    "lunch2": "Cuketovo - bramborové placičky,  salát zelný s křenem,  makovec,  instantní čaj",
+    "avg_rating": "3.20"
+  },
+  "worst_rated": {
+    "id": 7,
+    "date": "2025-03-05T23:00:00.000Z",
+    "soup": "Boršč se zakysanou smetanou",
+    "lunch1": "Vepřové na kmíně,  brambory vařené ,  čaj s citronem",
+    "lunch2": "Zeleninový bulgur se sýrem,  červená řepa,  čaj s citronem",
+    "avg_rating": null
+  },
+  "total_votes": 180
+}
