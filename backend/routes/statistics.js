@@ -153,7 +153,7 @@ const removeDiacritics = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/
 const formatDate = (dateString) => {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Měsíce jsou indexovány od 0
+    const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     return `${day}. ${month}. ${year}`;
 };
@@ -229,7 +229,7 @@ async function sendEmailWithAttachment(to, filePath) {
         to,
         subject: 'Statistiky',
         text: 'Zde jsou vaše statistiky.',
-        attachments: [{ filename: 'statistics.pdf', path: filePath }], // Změněno na PDF
+        attachments: [{ filename: 'statistics.pdf', path: filePath }],
     });
 }
 
