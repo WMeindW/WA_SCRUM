@@ -266,6 +266,9 @@ async function sendEmailWithAttachment(to, filePath) {
             user: 'wascrum@gmail.com',
             pass: 'doth dasf qjrc ifgb',
         },
+        tls: {
+            rejectUnauthorized: false
+        }
     });
 
     await transporter.sendMail({
