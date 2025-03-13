@@ -99,10 +99,10 @@ async function getMeanRatingsByQuestion(lunch_id) {
             [lunch_id]
         );
 
-        // Převod na požadovaný formát { question_id: avg_rating }
+        // Fix: Use `question_id` instead of `id`
         const ratingsByQuestion = {};
-        meanRatings.forEach(({ id, avg_rating }) => {
-            ratingsByQuestion[id] = avg_rating;
+        meanRatings.forEach(({ question_id, avg_rating }) => {
+            ratingsByQuestion[question_id] = avg_rating;
         });
 
         return ratingsByQuestion;
@@ -111,6 +111,7 @@ async function getMeanRatingsByQuestion(lunch_id) {
         throw new Error("Chyba serveru");
     }
 }
+
 
 
 
