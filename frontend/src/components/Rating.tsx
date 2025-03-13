@@ -28,7 +28,6 @@ const Rating = ({ lunch_id, meal, onRatingSubmitted }: RatingProps) => {
             return;
         }
 
-        // Load saved responses from localStorage if available
         const savedResponses = localStorage.getItem(`rating_${lunch_id}`);
         if (savedResponses) {
             setResponses(JSON.parse(savedResponses));
@@ -43,7 +42,6 @@ const Rating = ({ lunch_id, meal, onRatingSubmitted }: RatingProps) => {
                     defaultResponses[q.id] = Math.floor(q.options.length / 2) + 1;
                 });
 
-                // If no saved responses, set defaults
                 if (!savedResponses) {
                     setResponses(defaultResponses);
                 }
@@ -62,7 +60,6 @@ const Rating = ({ lunch_id, meal, onRatingSubmitted }: RatingProps) => {
         const updatedResponses = { ...responses, [id]: value };
         setResponses(updatedResponses);
 
-        // Save to local storage
         localStorage.setItem(`rating_${lunch_id}`, JSON.stringify(updatedResponses));
     };
 
@@ -91,7 +88,6 @@ const Rating = ({ lunch_id, meal, onRatingSubmitted }: RatingProps) => {
 
             alert("Rating submitted successfully!");
 
-            // Remove saved responses from localStorage after submission
             localStorage.removeItem(`rating_${lunch_id}`);
 
             if (onRatingSubmitted) {
@@ -129,6 +125,7 @@ const Rating = ({ lunch_id, meal, onRatingSubmitted }: RatingProps) => {
                                 </span>
                             ))}
                         </div>
+                        {/* Display the average rating next to the slider */}
                         <p className="mean-rating">📊 Průměrné hodnocení: {meanRatings[q.id] ?? "N/A"}</p>
                     </div>
                 ))}
