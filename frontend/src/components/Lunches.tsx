@@ -9,8 +9,8 @@ interface Lunch {
     lunch1: string;
     lunch2: string;
     rated: number;
-    ratingCount?: number; // Number of ratings received
-    meanRating?: number; // Average rating for the lunch
+    ratingCount?: number;
+    meanRating?: number;
 }
 
 const Lunches = () => {
@@ -19,10 +19,8 @@ const Lunches = () => {
     const [error, setError] = useState("");
     const [selectedLunchId, setSelectedLunchId] = useState<number | null>(null);
     const [selectedMeal, setSelectedMeal] = useState<string | null>(null);
-    const [averageRatingCount, setAverageRatingCount] = useState<number | null>(null);
     const userEmail = localStorage.getItem("userEmail");
 
-    // Fetch lunches
     useEffect(() => {
         if (!userEmail) {
             setError("User not logged in");
@@ -41,24 +39,17 @@ const Lunches = () => {
             .finally(() => setLoading(false));
     }, [userEmail]);
 
-    // Fetch ratings once lunches are loaded
-    // Fetch ratings once lunches are loaded
     useEffect(() => {
-        if (lunches.length === 0) return; // Ensure lunches are loaded before fetching ratings
+        if (lunches.length === 0) return;
 
         const fetchRatings = async () => {
             try {
                 const ratingPromises = lunches.map(async (lunch) => {
                     try {
                         const res = await axios.get(`http://localhost:5000/lunch/${lunch.lunch_menu_id}/rating`);
-                        if (res.data.error) {
-                            return { lunch_menu_id: lunch.lunch_menu_id, meanRating: null, ratingCount: 0 };
-                        }
-                        return {
-                            lunch_menu_id: lunch.lunch_menu_id,
-                            meanRating: res.data.mean_rating,
-                            ratingCount: res.data.rating_count, // Fetch count from API
-                        };
+                        return res.data.error
+                            ? { lunch_menu_id: lunch.lunch_menu_id, meanRating: null, ratingCount: 0 }
+                            : { lunch_menu_id: lunch.lunch_menu_id, meanRating: res.data.mean_rating, ratingCount: res.data.rating_count };
                     } catch {
                         return { lunch_menu_id: lunch.lunch_menu_id, meanRating: null, ratingCount: 0 };
                     }
@@ -69,37 +60,20 @@ const Lunches = () => {
                 setLunches((prevLunches) =>
                     prevLunches.map((lunch) => {
                         const ratingData = ratings.find((r) => r.lunch_menu_id === lunch.lunch_menu_id);
-                        return {
-                            ...lunch,
-                            meanRating: ratingData?.meanRating ?? null,
-                            ratingCount: ratingData?.ratingCount ?? 0
-                        };
+                        return { ...lunch, meanRating: ratingData?.meanRating ?? null, ratingCount: ratingData?.ratingCount ?? 0 };
                     })
                 );
-
-                const validRatings = ratings.filter((r) => r.meanRating !== null);
-                if (validRatings.length > 0) {
-                    const sumRatings = validRatings.reduce((sum, r) => sum + (r.meanRating || 0), 0);
-                    setAverageRatingCount(sumRatings / validRatings.length);
-                }
             } catch (error) {
                 console.error("Error fetching ratings:", error);
             }
         };
 
-
         fetchRatings();
     }, [lunches.length]);
 
-
     const handleLunchClick = (lunchId: number) => {
-        if (selectedLunchId === lunchId) {
-            setSelectedLunchId(null);
-            setSelectedMeal(null);
-        } else {
-            setSelectedLunchId(lunchId);
-            setSelectedMeal(null);
-        }
+        setSelectedLunchId(selectedLunchId === lunchId ? null : lunchId);
+        setSelectedMeal(null);
     };
 
     const handleRatingSubmitted = (lunchId: number) => {
@@ -108,13 +82,13 @@ const Lunches = () => {
                 lunch.lunch_menu_id === lunchId ? { ...lunch, rated: 1 } : lunch
             )
         );
-        setSelectedLunchId(null); // Hide the rating form
+        setSelectedLunchId(null);
         setSelectedMeal(null);
     };
 
     const handleLogout = () => {
-        localStorage.clear(); // Removes all stored user data
-        window.location.href = "/"; // Redirects to the login page
+        localStorage.clear();
+        window.location.href = "/";
     };
 
     return (
@@ -126,41 +100,29 @@ const Lunches = () => {
 
             <h2>🍽 Nehodnocené obědy</h2>
             <ul className="lunch-list">
-                {lunches.filter(l => l.rated === 0).map(lunch => {
-                    const anomaly =
-                        lunch.meanRating !== undefined && lunch.meanRating !== null &&
-                        averageRatingCount !== null &&
-                        (lunch.meanRating > averageRatingCount * 1.5 || lunch.meanRating < averageRatingCount * 0.5);
-
-                    return (
-                        <li
-                            key={lunch.lunch_menu_id}
-                            className={`lunch-item unrated ${selectedLunchId === lunch.lunch_menu_id ? "selected-lunch" : ""} ${anomaly ? "anomaly" : ""}`}
-                            onClick={() => handleLunchClick(lunch.lunch_menu_id)}
-                        >
-                            <div className="lunch-header">
-                                <span className="lunch-date">{new Date(lunch.menu_date).toLocaleDateString()}</span>
-                                {anomaly && <span className="anomaly-warning">⚠️ Anomaly</span>}
-                            </div>
-                            <div className="lunch-body">
-                                <p className="lunch-soup">🍜 <strong>Polévka:</strong> {lunch.soup}</p>
-                                <p className="lunch-main">
-                                    🍽 <strong>Hlavní jídlo 1:</strong> {lunch.lunch1}
-                                </p>
-                                <p className="lunch-main">
-                                    🍽 <strong>Hlavní jídlo 2:</strong> {lunch.lunch2}
-                                </p>
-                            </div>
-                            <div className="lunch-footer">⭐
-                                <span className="rating">
-                                    Rating: {lunch.meanRating !== undefined && lunch.meanRating !== null
-                                    ? `${lunch.meanRating.toFixed(1)} / ${lunch.ratingCount} ratings`
-                                    : "No Ratings"}
-                                </span>
-                            </div>
-                        </li>
-                    );
-                })}
+                {lunches.filter(l => l.rated === 0).map(lunch => (
+                    <li
+                        key={lunch.lunch_menu_id}
+                        className={`lunch-item unrated ${selectedLunchId === lunch.lunch_menu_id ? "selected-lunch" : ""}`}
+                        onClick={() => handleLunchClick(lunch.lunch_menu_id)}
+                    >
+                        <div className="lunch-header">
+                            <span className="lunch-date">{new Date(lunch.menu_date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="lunch-body">
+                            <p className="lunch-soup">🍜 <strong>Polévka:</strong> {lunch.soup}</p>
+                            <p className="lunch-main">🍽 <strong>Hlavní jídlo 1:</strong> {lunch.lunch1}</p>
+                            <p className="lunch-main">🍽 <strong>Hlavní jídlo 2:</strong> {lunch.lunch2}</p>
+                        </div>
+                        <div className="lunch-footer">⭐
+                            <span className="rating">
+                                Rating: {lunch.meanRating !== undefined && lunch.meanRating !== null
+                                ? `${lunch.meanRating.toFixed(1)} / ${lunch.ratingCount} ratings`
+                                : "No Ratings"}
+                            </span>
+                        </div>
+                    </li>
+                ))}
             </ul>
 
             {selectedLunchId && (
@@ -188,40 +150,25 @@ const Lunches = () => {
 
             <h2>✅ Ohodnocené obědy</h2>
             <ul className="lunch-list">
-                {lunches.filter(l => l.rated === 1).map(lunch => {
-                    const anomaly =
-                        lunch.meanRating !== undefined && lunch.meanRating !== null &&
-                        averageRatingCount !== null &&
-                        (lunch.meanRating > averageRatingCount * 1.5 || lunch.meanRating < averageRatingCount * 0.5);
-
-                    return (
-                        <li
-                            key={lunch.lunch_menu_id}
-                            className={`lunch-item rated ${anomaly ? "anomaly" : ""}`}
-                        >
-                            <div className="lunch-header">
-                                <span className="lunch-date">{new Date(lunch.menu_date).toLocaleDateString()}</span>
-                            </div>
-                            <div className="lunch-body">
-                                <p className="lunch-soup">🍜 <strong>Polévka:</strong> {lunch.soup}</p>
-                                <p className="lunch-main">
-                                    🍽 <strong>Hlavní jídlo 1:</strong> {lunch.lunch1}
-                                </p>
-                                <p className="lunch-main">
-                                    🍽 <strong>Hlavní jídlo 2:</strong> {lunch.lunch2}
-                                </p>
-                            </div>
-                            <div className="lunch-footer">⭐
-                                <span className="rating">
-                                    Rating: {lunch.meanRating !== undefined && lunch.meanRating !== null
-                                    ? `${lunch.meanRating.toFixed(1)} / ${lunch.ratingCount} ratings`
-                                    : "No Ratings"}
-                                </span>
-                            </div>
-
-                        </li>
-                    );
-                })}
+                {lunches.filter(l => l.rated === 1).map(lunch => (
+                    <li key={lunch.lunch_menu_id} className="lunch-item rated">
+                        <div className="lunch-header">
+                            <span className="lunch-date">{new Date(lunch.menu_date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="lunch-body">
+                            <p className="lunch-soup">🍜 <strong>Polévka:</strong> {lunch.soup}</p>
+                            <p className="lunch-main">🍽 <strong>Hlavní jídlo 1:</strong> {lunch.lunch1}</p>
+                            <p className="lunch-main">🍽 <strong>Hlavní jídlo 2:</strong> {lunch.lunch2}</p>
+                        </div>
+                        <div className="lunch-footer">⭐
+                            <span className="rating">
+                                Rating: {lunch.meanRating !== undefined && lunch.meanRating !== null
+                                ? `${lunch.meanRating.toFixed(1)} / ${lunch.ratingCount} ratings`
+                                : "No Ratings"}
+                            </span>
+                        </div>
+                    </li>
+                ))}
             </ul>
 
             <button onClick={handleLogout} className="logout-button">

@@ -49,12 +49,25 @@ const Rating = ({ lunch_id, meal, onRatingSubmitted }: RatingProps) => {
             .catch(() => setError("Failed to load questions."));
 
         // Fetch mean ratings for each question
+        console.log("Fetching mean ratings for lunch_id:", lunch_id);
         axios.get(`http://localhost:5000/api/questions/mean-ratings?lunch_id=${lunch_id}`)
             .then((res) => {
-                setMeanRatings(res.data);
+                console.log("Received mean ratings:", res.data);
+
+                // Convert string values to numbers and round them
+                const processedRatings = Object.fromEntries(
+                    Object.entries(res.data).map(([key, value]) => [key, parseFloat(value as string)])
+                );
+
+                setMeanRatings(processedRatings);
             })
-            .catch(() => console.error("Failed to fetch mean ratings."));
+            .catch(() => {
+                console.error("Failed to fetch mean ratings.");
+                setMeanRatings({});
+            });
+
     }, [lunch_id, userEmail]);
+
 
     const handleChange = (id: number, value: number) => {
         const updatedResponses = { ...responses, [id]: value };
@@ -126,7 +139,9 @@ const Rating = ({ lunch_id, meal, onRatingSubmitted }: RatingProps) => {
                             ))}
                         </div>
                         {/* Display the average rating next to the slider */}
-                        <p className="mean-rating">📊 Průměrné hodnocení: {meanRatings[q.id] ?? "N/A"}</p>
+                        <p className="mean-rating">
+                            📊 Průměrné hodnocení: {meanRatings[q.id] !== undefined ? meanRatings[q.id].toFixed(1) : "N/A"}
+                        </p>
                     </div>
                 ))}
                 <button type="submit" className="submit-button">
