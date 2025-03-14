@@ -430,6 +430,7 @@ h3 {
 }
 
 .date-range {
+    justify-content: center;
     display: flex;
     align-items: center;
     gap: 10px;

@@ -26,8 +26,15 @@ const Statistics = () => {
     });
 
     const [email, setEmail] = useState("");
-    const [fromDate, setFromDate] = useState("");
-    const [toDate, setToDate] = useState("");
+
+    // Set default dates
+    const today = new Date().toISOString().split("T")[0];
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const defaultFromDate = sevenDaysAgo.toISOString().split("T")[0];
+
+    const [fromDate, setFromDate] = useState(defaultFromDate);
+    const [toDate, setToDate] = useState(today);
 
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
@@ -38,9 +45,7 @@ const Statistics = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (fromDate && toDate) {
-            fetchStatistics();
-        }
+        fetchStatistics(); // Load statistics on page load
     }, [fromDate, toDate]);
 
     const fetchStatistics = async () => {
@@ -108,7 +113,6 @@ const Statistics = () => {
                 <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
                 <label>📅 Do: </label>
                 <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
-                <button onClick={fetchStatistics}>🔍 Zobrazit Statistiky</button>
             </div>
 
             <table>
