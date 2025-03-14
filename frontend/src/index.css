@@ -428,3 +428,47 @@ h3 {
 .admin-button:hover, .logout-button:hover {
     background-color: #1248bd;
 }
+
+.date-range {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.date-range label {
+    font-weight: bold;
+    color: #333;
+}
+
+.date-range input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.date-range input:focus {
+    border-color: #007bff;
+}
+
+.date-range button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s ease;
+}
+
+.date-range button:hover {
+    background: #0056b3;
+}

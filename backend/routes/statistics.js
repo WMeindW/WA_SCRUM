@@ -113,9 +113,6 @@ async function getMeanRatingsByQuestion(lunch_id) {
 }
 
 
-
-
-
 async function generateStatistics(from_date, to_date) {
     try {
         // 📌 1️⃣ Nejvíce hodnocený oběd

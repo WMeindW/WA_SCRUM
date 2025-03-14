@@ -27,6 +27,7 @@ const Statistics = () => {
 
     const [email, setEmail] = useState("");
     const [fromDate, setFromDate] = useState("");
+    const [toDate, setToDate] = useState("");
 
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
@@ -37,12 +38,25 @@ const Statistics = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetchStatistics();
-    }, []);
+        if (fromDate && toDate) {
+            fetchStatistics();
+        }
+    }, [fromDate, toDate]);
 
     const fetchStatistics = async () => {
+        if (!fromDate || !toDate) {
+            setError("❌ Musíte vybrat časové období.");
+            return;
+        }
+
+        setError("");
         try {
-            const response = await axios.get("http://localhost:5000/lunch/stats");
+            const response = await axios.get("http://localhost:5000/lunch/stats", {
+                params: {
+                    from_date: fromDate,
+                    to_date: toDate,
+                },
+            });
             setStatistics(response.data);
         } catch (err) {
             setError("❌ Chyba při načítání statistik.");
@@ -53,7 +67,7 @@ const Statistics = () => {
         setMessage("");
         setError("");
 
-        if (!email || !user || !password || !fromDate) {
+        if (!email || !user || !password || !fromDate || !toDate) {
             setError("❌ Vyplňte všechny údaje.");
             return;
         }
@@ -63,7 +77,8 @@ const Statistics = () => {
                 email,
                 user,
                 password,
-                from: fromDate, // Send the selected date
+                from: fromDate,
+                to: toDate,
             });
 
             setMessage(response.data.message);
@@ -71,7 +86,6 @@ const Statistics = () => {
             setError("❌ Chyba při odesílání statistik.");
         }
     };
-
 
     const goToLunchRatings = () => {
         navigate("/lunches");
@@ -88,6 +102,14 @@ const Statistics = () => {
 
             {error && <p className="error-message">{error}</p>}
             {message && <p className="success-message">{message}</p>}
+
+            <div className="date-range">
+                <label>📅 Od: </label>
+                <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+                <label>📅 Do: </label>
+                <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
+                <button onClick={fetchStatistics}>🔍 Zobrazit Statistiky</button>
+            </div>
 
             <table>
                 <thead>
@@ -150,12 +172,6 @@ const Statistics = () => {
                     placeholder="Zadejte váš email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                />
-
-                <input
-                    type="date"
-                    value={fromDate}
-                    onChange={(e) => setFromDate(e.target.value)}
                 />
 
                 <button onClick={sendStatisticsEmail}>📧 Odeslat Statistiky</button>
