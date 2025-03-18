@@ -35,14 +35,14 @@ function defineAPIStatisticsEndpoint(app) {
 
         try {
             const [rows] = await pool.query(
-                "SELECT AVG(rating) AS mean_rating, COUNT(rating) AS rating_count FROM user_lunch_ratings WHERE lunch_menu_id = ?",
+                "SELECT AVG(rating) AS mean_rating, COUNT(DISTINCT user_id) AS rating_count FROM user_lunch_ratings WHERE lunch_menu_id = ?",
                 [lunchMenuId]
             );
 
             res.json({
                 lunch_menu_id: lunchMenuId,
                 mean_rating: rows[0].mean_rating ? parseFloat(rows[0].mean_rating) : null,
-                rating_count: rows[0].rating_count || 0, // Default to 0 if no ratings exist
+                rating_count: rows[0].rating_count || 0,
             });
         } catch (error) {
             console.error("❌ Error fetching rating:", error);
@@ -122,7 +122,7 @@ async function generateStatistics(from_date, to_date) {
                     s.name AS soup,
                     l1.name AS lunch1,
                     l2.name AS lunch2,
-                    COUNT(ulr.rating) AS total_ratings
+                    COUNT(DISTINCT user_id) AS total_ratings
              FROM lunch_menus lm
                       JOIN soups s ON lm.soup_id = s.id
                       JOIN lunches l1 ON lm.main_course_1_id = l1.id
