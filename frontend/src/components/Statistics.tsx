@@ -10,6 +10,7 @@ interface Statistic {
     lunch2: string;
     avg_rating?: number;
     total_ratings?: number;
+    rating_count?: number;
 }
 
 const Statistics = () => {
@@ -102,6 +103,7 @@ const Statistics = () => {
     };
 
     return (
+
         <div className="statistics">
             <h2>📊 Statistiky</h2>
 
@@ -115,58 +117,60 @@ const Statistics = () => {
                 <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
             </div>
 
-            <table>
-                <thead>
-                <tr>
-                    <th>Typ</th>
-                    <th>Datum</th>
-                    <th>Polévka</th>
-                    <th>Hlavní jídlo 1</th>
-                    <th>Hlavní jídlo 2</th>
-                    <th>Hodnocení</th>
-                </tr>
-                </thead>
-                <tbody>
-                {statistics.most_rated && (
+            <div className="table-container">
+                <table>
+                    <thead>
                     <tr>
-                        <td>🔥 Nejvíce hodnocený</td>
-                        <td>{new Date(statistics.most_rated.date).toLocaleDateString()}</td>
-                        <td>{statistics.most_rated.soup}</td>
-                        <td>{statistics.most_rated.lunch1}</td>
-                        <td>{statistics.most_rated.lunch2}</td>
-                        <td>{statistics.most_rated.total_ratings} hodnocení</td>
+                        <th>Typ</th>
+                        <th>Datum</th>
+                        <th>Polévka</th>
+                        <th>Hlavní jídlo 1</th>
+                        <th>Hlavní jídlo 2</th>
+                        <th>Hodnocení</th>
                     </tr>
-                )}
-                {statistics.best_rated && (
-                    <tr>
-                        <td>🏆 Nejlépe hodnocený</td>
-                        <td>{new Date(statistics.best_rated.date).toLocaleDateString()}</td>
-                        <td>{statistics.best_rated.soup}</td>
-                        <td>{statistics.best_rated.lunch1}</td>
-                        <td>{statistics.best_rated.lunch2}</td>
-                        <td>
-                            {statistics.best_rated?.avg_rating != null
-                                ? Math.round(statistics.best_rated.avg_rating * 100) / 100
-                                : "0"}⭐
-                        </td>
-                    </tr>
-                )}
-                {statistics.worst_rated && (
-                    <tr>
-                        <td>💀 Nejhůře hodnocený</td>
-                        <td>{new Date(statistics.worst_rated.date).toLocaleDateString()}</td>
-                        <td>{statistics.worst_rated.soup}</td>
-                        <td>{statistics.worst_rated.lunch1}</td>
-                        <td>{statistics.worst_rated.lunch2}</td>
-                        <td>
-                            {statistics.worst_rated?.avg_rating != null
-                                ? Math.round(statistics.worst_rated.avg_rating * 100) / 100
-                                : "0"}⭐
-                        </td>
-                    </tr>
-                )}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    {statistics.most_rated && (
+                        <tr>
+                            <td>🔥 Nejvíce hodnocený</td>
+                            <td>{new Date(statistics.most_rated.date).toLocaleDateString()}</td>
+                            <td>{statistics.most_rated.soup}</td>
+                            <td>{statistics.most_rated.lunch1}</td>
+                            <td>{statistics.most_rated.lunch2}</td>
+                            <td>{statistics.most_rated.total_ratings} hodnocení</td>
+                        </tr>
+                    )}
+                    {statistics.best_rated && (
+                        <tr>
+                            <td>🏆 Nejlépe hodnocený</td>
+                            <td>{new Date(statistics.best_rated.date).toLocaleDateString()}</td>
+                            <td>{statistics.best_rated.soup}</td>
+                            <td>{statistics.best_rated.lunch1}</td>
+                            <td>{statistics.best_rated.lunch2}</td>
+                            <td>
+                                ⭐{statistics.best_rated?.avg_rating != null
+                                ? Math.round(statistics.best_rated.avg_rating * 100) / 100 + " / " + statistics.best_rated.rating_count
+                                : "0 / " + statistics.best_rated.rating_count}
+                            </td>
+                        </tr>
+                    )}
+                    {statistics.worst_rated && (
+                        <tr>
+                            <td>💀 Nejhůře hodnocený</td>
+                            <td>{new Date(statistics.worst_rated.date).toLocaleDateString()}</td>
+                            <td>{statistics.worst_rated.soup}</td>
+                            <td>{statistics.worst_rated.lunch1}</td>
+                            <td>{statistics.worst_rated.lunch2}</td>
+                            <td>
+                                ⭐{statistics.worst_rated?.avg_rating != null
+                                ? Math.round(statistics.worst_rated.avg_rating * 100) / 100 + " / " + statistics.worst_rated.rating_count
+                                : "0 / " + statistics.worst_rated.rating_count}
+                            </td>
+                        </tr>
+                    )}
+                    </tbody>
+                </table>
+            </div>
 
             <h3>📢 Celkový počet hodnocení: {statistics.total_votes}</h3>
 

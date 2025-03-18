@@ -140,7 +140,8 @@ async function generateStatistics(from_date, to_date) {
                     s.name AS soup,
                     l1.name AS lunch1,
                     l2.name AS lunch2,
-                    ROUND(AVG(ulr.rating), 2) AS avg_rating
+                    ROUND(AVG(ulr.rating), 2) AS avg_rating,
+                    COUNT(DISTINCT ulr.user_id) AS rating_count
              FROM lunch_menus lm
                       JOIN soups s ON lm.soup_id = s.id
                       JOIN lunches l1 ON lm.main_course_1_id = l1.id
@@ -158,7 +159,8 @@ async function generateStatistics(from_date, to_date) {
                     s.name AS soup,
                     l1.name AS lunch1,
                     l2.name AS lunch2,
-                    AVG(ulr.rating) AS avg_rating
+                    ROUND(AVG(ulr.rating), 2) AS avg_rating,
+                    COUNT(DISTINCT ulr.user_id) AS rating_count
              FROM lunch_menus lm
                       JOIN soups s ON lm.soup_id = s.id
                       JOIN lunches l1 ON lm.main_course_1_id = l1.id
