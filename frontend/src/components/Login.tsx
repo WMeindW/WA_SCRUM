@@ -51,7 +51,7 @@ const Login = () => {
                 <form onSubmit={handleLogin}>
                     <input
                         type="text"
-                        placeholder="Email"
+                        placeholder="Username"
                         className="login-input"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
