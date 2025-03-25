@@ -1,6 +1,15 @@
-const { pool } = require("../db_conn");
+const { pool } = require("../db_conn");  // Import databázového připojení
 
+/**
+ * Definuje API endpointy pro získávání informací o obědech.
+ * @param {Object} app - Express aplikace, do které se registrují endpointy
+ */
 function defineLunchEndpoints(app) {
+    /**
+     * Endpoint pro získání obědů uživatele.
+     * @route GET /api/lunches
+     * @query {string} email - Email uživatele, pro kterého se obědy načítají.
+     */
     app.get("/api/lunches", async (req, res) => {
         const { email } = req.query;
 
@@ -11,7 +20,7 @@ function defineLunchEndpoints(app) {
         try {
             console.log(`📢 Získávám obědy pro uživatele: ${email}`);
 
-            // 🟡 Zavolání procedury GetUserLastLunchesWithRating
+            // Volání uložené procedury pro získání obědů s hodnocením
             const [rows] = await pool.query("CALL GetUserLastLunchesWithRating(?)", [email]);
 
             console.log("📋 Vrácená data:", rows[0]);
@@ -24,4 +33,4 @@ function defineLunchEndpoints(app) {
     });
 }
 
-module.exports = { defineLunchEndpoints };
+module.exports = { defineLunchEndpoints };  // Export funkce pro registraci endpointů
