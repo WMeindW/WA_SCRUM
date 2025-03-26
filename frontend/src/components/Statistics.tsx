@@ -188,12 +188,12 @@ const Statistics = () => {
             <div className="button-container">
                 {isAdmin && (
                     <button onClick={goToLunchRatings} className="admin-button">
-                        🍴 Přejít na stránku hodnocení obědů
+                        🍴 Hodnocení
                     </button>
                 )}
 
                 <button onClick={handleLogout} className="logout-button">
-                    🚪Odhlásit se
+                    🚪 Odhlásit se
                 </button>
             </div>
         </div>
