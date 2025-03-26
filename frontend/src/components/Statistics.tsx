@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+// Definice rozhraní pro data statistik
 interface Statistic {
     id: number;
     date: string;
@@ -13,7 +14,13 @@ interface Statistic {
     rating_count?: number;
 }
 
+/**
+ * @component Statistics
+ * @description Komponenta pro zobrazení statistik hodnocení obědů.
+ * @returns {JSX.Element} Komponenta pro zobrazení statistik.
+ */
 const Statistics = () => {
+    // Stav pro statistiky, email, data pro filtrování a zprávy
     const [statistics, setStatistics] = useState<{
         most_rated: Statistic | null;
         best_rated: Statistic | null;
@@ -28,7 +35,7 @@ const Statistics = () => {
 
     const [email, setEmail] = useState("");
 
-    // Set default dates
+    // Nastavení výchozích dat pro filtrování
     const today = new Date().toISOString().split("T")[0];
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -45,10 +52,16 @@ const Statistics = () => {
     const isAdmin = localStorage.getItem("isAdmin") === "true";
     const navigate = useNavigate();
 
+    // Načtení statistik při načtení komponenty a při změně dat filtru
     useEffect(() => {
-        fetchStatistics(); // Load statistics on page load
+        fetchStatistics();
     }, [fromDate, toDate]);
 
+    /**
+     * @async
+     * @function fetchStatistics
+     * @description Funkce pro načtení statistik z API.
+     */
     const fetchStatistics = async () => {
         if (!fromDate || !toDate) {
             setError("❌ Musíte vybrat časové období.");
@@ -57,6 +70,7 @@ const Statistics = () => {
 
         setError("");
         try {
+            // Získání statistik z API
             const response = await axios.get("http://localhost:5000/lunch/stats", {
                 params: {
                     from_date: fromDate,
@@ -69,6 +83,11 @@ const Statistics = () => {
         }
     };
 
+    /**
+     * @async
+     * @function sendStatisticsEmail
+     * @description Funkce pro odeslání statistik emailem.
+     */
     const sendStatisticsEmail = async () => {
         setMessage("");
         setError("");
@@ -79,6 +98,7 @@ const Statistics = () => {
         }
 
         try {
+            // Odeslání požadavku na API pro odeslání emailu
             const response = await axios.post("http://localhost:5000/api/statistics", {
                 email,
                 user,
@@ -93,17 +113,24 @@ const Statistics = () => {
         }
     };
 
+    /**
+     * @function goToLunchRatings
+     * @description Funkce pro přesměrování na stránku hodnocení obědů.
+     */
     const goToLunchRatings = () => {
         navigate("/lunches");
     };
 
+    /**
+     * @function handleLogout
+     * @description Funkce pro odhlášení uživatele.
+     */
     const handleLogout = () => {
         localStorage.clear();
         window.location.href = "/";
     };
 
     return (
-
         <div className="statistics">
             <h2>📊 Statistiky</h2>
 

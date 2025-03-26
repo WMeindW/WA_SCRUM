@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import Rating from "./Rating";
 
+// Definice rozhraní pro data oběda
 interface Lunch {
     lunch_menu_id: number;
     menu_date: string;
@@ -13,7 +14,13 @@ interface Lunch {
     meanRating?: number;
 }
 
+/**
+ * @component Lunches
+ * @description Komponenta pro zobrazení seznamu obědů a jejich hodnocení.
+ * @returns {JSX.Element} Seznam obědů.
+ */
 const Lunches = () => {
+    // Stav pro seznam obědů, stav načítání, chybové zprávy, vybraný oběd a vybrané jídlo
     const [lunches, setLunches] = useState<Lunch[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -21,12 +28,14 @@ const Lunches = () => {
     const [selectedMeal, setSelectedMeal] = useState<string | null>(null);
     const userEmail = localStorage.getItem("userEmail");
 
+    // Načtení dat obědů při načtení komponenty
     useEffect(() => {
         if (!userEmail) {
             setError("User not logged in");
             return;
         }
 
+        // Získání dat obědů z API
         axios.get(`http://localhost:5000/api/lunches?email=${userEmail}`)
             .then((res) => {
                 if (Array.isArray(res.data)) {
@@ -39,11 +48,13 @@ const Lunches = () => {
             .finally(() => setLoading(false));
     }, [userEmail]);
 
+    // Načtení hodnocení pro každý oběd
     useEffect(() => {
         if (lunches.length === 0) return;
 
         const fetchRatings = async () => {
             try {
+                // Získání hodnocení pro každý oběd z API
                 const ratingPromises = lunches.map(async (lunch) => {
                     try {
                         const res = await axios.get(`http://localhost:5000/lunch/${lunch.lunch_menu_id}/rating`);
@@ -55,6 +66,7 @@ const Lunches = () => {
                     }
                 });
 
+                // Aktualizace stavu obědů s hodnocením
                 const ratings = await Promise.all(ratingPromises);
 
                 setLunches((prevLunches) =>
@@ -71,12 +83,15 @@ const Lunches = () => {
         fetchRatings();
     }, [lunches.length]);
 
+    // Zpracování kliknutí na oběd
     const handleLunchClick = (lunchId: number) => {
         setSelectedLunchId(selectedLunchId === lunchId ? null : lunchId);
         setSelectedMeal(null);
     };
 
+    // Zpracování odeslání hodnocení
     const handleRatingSubmitted = (lunchId: number) => {
+        // Aktualizace stavu obědů s informací o hodnocení
         setLunches((prevLunches) =>
             prevLunches.map((lunch) =>
                 lunch.lunch_menu_id === lunchId ? { ...lunch, rated: 1 } : lunch
@@ -86,6 +101,7 @@ const Lunches = () => {
         setSelectedMeal(null);
     };
 
+    // Odhlášení uživatele
     const handleLogout = () => {
         localStorage.clear();
         window.location.href = "/";

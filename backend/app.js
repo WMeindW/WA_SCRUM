@@ -13,7 +13,11 @@ configureApp(app)
 defineAPIEndpoints(app);
 startServer(app);
 
-
+/**
+ * @function configureApp
+ * @description Konfiguruje Express aplikaci s middleware pro CORS, JSON parsování a URL kódování.
+ * @param {object} app Express aplikace.
+ */
 function configureApp(app) {
     const corsOptions = {
         origin: "http://localhost:5173",
@@ -25,6 +29,11 @@ function configureApp(app) {
     app.use(express.urlencoded({ extended: true }));
 }
 
+/**
+ * @function startServer
+ * @description Spouští server na definovaném portu.
+ * @param {object} app Express aplikace.
+ */
 function startServer(app) {
     const port = process.env.S_PORT || 3000;
     app.listen(port, () => {

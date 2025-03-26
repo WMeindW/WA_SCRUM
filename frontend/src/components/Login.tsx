@@ -1,35 +1,52 @@
 import { useState } from "react";
 import axios from "axios";
 
+/**
+ * @component Login
+ * @description Komponenta pro přihlašovací formulář.
+ * @returns {JSX.Element} Přihlašovací formulář.
+ */
 const Login = () => {
+    // Stav pro email, heslo a chybové zprávy
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
+    /**
+     * @async
+     * @function handleLogin
+     * @description Funkce pro zpracování přihlašovacího formuláře.
+     * @param {object} e Event objekt formuláře.
+     */
     const handleLogin = async (e: { preventDefault: () => void }) => {
-        e.preventDefault();
-        setError("");
+        e.preventDefault(); // Zabrání výchozímu chování formuláře
+        setError(""); // Resetuje chybovou zprávu
 
+        // Validace vstupních polí
         if (!email || !password) {
             setError("Both fields are required.");
             return;
         }
 
         try {
+            // Odeslání POST požadavku na server pro přihlášení
             const response = await axios.post("http://localhost:5000/api/login", {
                 email,
                 password,
             }, {
-                withCredentials: true
+                withCredentials: true // Umožňuje odesílání cookies
             });
 
+            // Zpracování úspěšného přihlášení
             if (response.status === 200) {
+                // Uložení emailu a hesla do localStorage (Pozor na bezpečnost!)
                 localStorage.setItem("userEmail", email);
                 localStorage.setItem("password", password);
 
-                // Assuming the server responds with an 'admin' field that is true for admins
+                // Uložení informace o administrátorských právech do localStorage
                 localStorage.setItem("isAdmin", response.data.admin ? "true" : "false");
 
+                // Přesměrování na příslušnou stránku podle administrátorských práv
                 if (response.data.admin) {
                     window.location.href = "/statistics"; // Redirect to admin page
                 } else {
